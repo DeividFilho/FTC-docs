@@ -28,23 +28,3 @@ Este projeto foi desenvolvido focado em alta performance e acesso rápido em qua
 * **UI/UX:** Ícones via FontAwesome e tipografia otimizada para leitura de dados (JetBrains Mono & Inter).
 
 ---
-
-## ⚙️ Instalação e Configuração (Fork)
-
-Se pretendes utilizar o MetalLab para a tua própria equipa, terás de configurar o teu próprio banco de dados Firebase para armazenar as partidas e logs de engenharia.
-
-1. Cria um projeto gratuito no [Firebase Console](https://console.firebase.google.com/).
-2. Adiciona uma aplicação Web ao projeto para gerares as tuas credenciais.
-3. Ativa o **Firestore Database**.
-4. Clona ou faz Fork deste repositório.
-5. No ficheiro `index.html`, localiza a variável `firebaseConfig` (perto do final do ficheiro) e substitui pelos dados fornecidos pelo teu projeto Firebase:
-
-```javascript
-const firebaseConfig = {
-  apiKey: "TUA_API_KEY_AQUI",
-  authDomain: "TEU_PROJETO.firebaseapp.com",
-  projectId: "TEU_PROJETO",
-  storageBucket: "TEU_PROJETO.firebasestorage.app",
-  messagingSenderId: "TEU_ID",
-  appId: "TEU_APP_ID"
-};
