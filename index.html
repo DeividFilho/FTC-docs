@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mission Control — MetalLAB</title>
+  <title>Mission Control — MetalLab</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +17,7 @@
   </script>
 
   <style>
-    /* ========== ESTILOS GLOBAIS (MANTIDOS DA VERSÃO ANTERIOR) ========== */
+    /* ========== ESTILOS GLOBAIS ========== */
     :root {
       --orange: #FF5E00;
       --orange-hover: #E05300;
@@ -72,12 +72,16 @@
       position: sticky; top: 0; z-index: 100;
       background: var(--black-pure); border-bottom: 2px solid var(--orange);
       padding: 12px 24px; display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); flex-wrap: wrap; gap: 15px;
     }
     .logo-container { display: flex; align-items: center; gap: 12px; }
     .logo-container h1 { font-size: 18px; font-weight: 700; letter-spacing: 2px; color: #fff; }
     .badge-decode { font-family: 'JetBrains Mono', monospace; background: var(--orange); color: #000; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; }
     
+    .global-version-container { display: flex; align-items: center; gap: 10px; background: var(--black-soft); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--orange); }
+    .global-version-container select { background: transparent; border: none; color: var(--orange); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; outline: none; cursor: pointer; padding: 0; width: auto; }
+    .global-version-container select option { background: var(--black-pure); color: var(--white-pure); }
+
     .nav-tabs { display: flex; gap: 6px; background: var(--black-soft); padding: 4px; border-radius: var(--radius-sm); border: 1px solid #333; overflow-x: auto;}
     .nav-tab {
       background: transparent; border: none; padding: 8px 16px; border-radius: 4px;
@@ -123,6 +127,7 @@
       padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; transition: var(--transition); width: 100%; outline: none;
     }
     input:focus, select:focus, textarea:focus { border-color: var(--orange); background: var(--bg-surface); box-shadow: -4px 0 0 var(--orange); }
+    input:disabled, select:disabled { opacity: 0.6; cursor: not-allowed; }
     textarea { min-height: 80px; resize: vertical; }
 
     .counter-widget { display: flex; align-items: center; background: var(--bg-input); border: 1px solid var(--border-light); border-radius: var(--radius-sm); height: 46px; }
@@ -247,8 +252,15 @@
 
   <header class="topbar">
     <div class="logo-container">
-      <h1>MetalLAB</h1>
+      <h1>MetalLab</h1>
       <span class="badge-decode">DECODE_OS</span>
+    </div>
+
+    <div class="global-version-container">
+      <i class="fas fa-code-branch" style="color: var(--orange);"></i>
+      <select id="globalVersionSelect">
+        <option value="v1.0">A carregar banco de dados...</option>
+      </select>
     </div>
     
     <div class="nav-tabs">
@@ -268,7 +280,6 @@
 
   <main class="container">
 
-    <!-- ========== MATCH TRACKER ========== -->
     <section id="sec-match" class="section active">
       <div class="hud-grid">
         <div class="hud-card accent"><span class="hud-lbl">Pts Totais</span><span class="hud-val" id="hudTotal">0</span></div>
@@ -282,8 +293,8 @@
           <div class="panel">
             <div class="panel-header"><span class="panel-title"><i class="fas fa-microchip"></i> Setup da Partida</span></div>
             <div class="fg" style="margin-bottom: 16px;">
-              <label>Configuração do Robô / Build</label>
-              <select id="matchMec"><option value="">A carregar versões do robô...</option></select>
+              <label>Configuração Ativa (Bloqueada pelo Global)</label>
+              <select id="matchMec" disabled><option value="">Sincronizando...</option></select>
             </div>
             <div class="grid-2">
               <div class="fg"><label>Pilotos</label><input type="text" id="pilotos" placeholder="Nomes"></div>
@@ -358,7 +369,6 @@
       <button class="fab" id="btnSaveMatch"><i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida</button>
     </section>
 
-    <!-- ========== DEVOPS LOG ========== -->
     <section id="sec-eng" class="section">
       <div class="panel" id="formEngenharia" style="border-left: 4px solid var(--orange); display: none;">
         <div class="panel-header">
@@ -379,7 +389,7 @@
             </select>
           </div>
           <div class="fg">
-            <label>Versão / Sprint (Ex: v2.1) <span style="color:var(--orange)">*</span></label>
+            <label>Versão da Peça/Sprint (Ex: v2.1) <span style="color:var(--orange)">*</span></label>
             <input type="text" id="engVer" placeholder="v1.0">
           </div>
           <div class="fg col-span-2">
@@ -461,14 +471,9 @@
       </div>
 
       <div id="engFeed" class="timeline">
-        <div class="panel" id="emptyEng" style="text-align: center; padding: 60px 20px; background: transparent; border: 2px dashed var(--border-light); box-shadow: none;">
-          <i class="fas fa-spinner fa-spin" style="font-size: 40px; margin-bottom: 16px; color: var(--orange);"></i>
-          <h3 style="color:var(--text-main); margin-bottom:8px; font-size: 16px;">A conectar à Base de Dados...</h3>
         </div>
-      </div>
     </section>
 
-    <!-- ========== BLUEPRINT ========== -->
     <section id="sec-robot" class="section">
       <div class="panel">
         <div class="panel-header">
@@ -479,16 +484,15 @@
         <div class="grid-2" style="max-width: 500px; margin: 0 auto 30px auto;">
           <div class="fg">
             <label style="text-align: center; justify-content: center;">Nome do Robô</label>
-            <input type="text" id="robotName" placeholder="Ex: Titan" style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--orange);">
+            <input type="text" id="robotName" placeholder="Ex: METALINA" value="METALINA" style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--orange);">
           </div>
           <div class="fg">
-            <label style="text-align: center; justify-content: center;">Versão</label>
+            <label style="text-align: center; justify-content: center;">Versão a ser criada</label>
             <input type="text" id="robotVersion" placeholder="Ex: v2.0" style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--orange);">
           </div>
         </div>
 
         <div class="robot-map-container">
-          
           <div class="fg" style="gap: 40px;">
             <div class="blueprint-card">
               <div class="blueprint-header">DRV - Chassi</div>
@@ -542,7 +546,6 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <div class="blueprint-card" style="max-width: 400px; margin: 40px auto 0 auto;">
@@ -552,10 +555,9 @@
 
       </div>
 
-      <button class="fab" id="btnSaveBlueprint"><i class="fas fa-save"></i> Atualizar Blueprint</button>
+      <button class="fab" id="btnSaveBlueprint"><i class="fas fa-save"></i> Gravar Nova Versão</button>
     </section>
 
-    <!-- ========== COMPARE ========== -->
     <section id="sec-compare" class="section">
       <div class="panel">
         <div class="panel-header"><span class="panel-title"><i class="fas fa-not-equal"></i> Análise Comparativa de Versões</span></div>
@@ -576,11 +578,10 @@
       </div>
     </section>
 
-    <!-- ========== ANALYTICS ========== -->
     <section id="sec-charts" class="section">
       <div class="panel-header" style="margin-bottom: 24px; border: none; padding: 0;">
         <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
-          <i class="fas fa-chart-pie" style="color:var(--orange);"></i> Real-Time Analytics
+          <i class="fas fa-chart-pie" style="color:var(--orange);"></i> Analytics da Versão Ativa
         </h2>
         <button class="nav-tab active" id="btnRefreshCharts" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Atualizar Dados</button>
       </div>
@@ -608,7 +609,7 @@
 
       <div class="charts-grid">
         <div class="chart-card col-span-2">
-          <h3>📈 Histórico de Pontuação (Últimas Partidas)</h3>
+          <h3>📈 Histórico de Pontuação</h3>
           <div class="chart-wrapper">
             <canvas id="scoreHistoryChart"></canvas>
           </div>
@@ -629,8 +630,8 @@
         </div>
 
         <div class="chart-card">
-          <h3>🚨 Análise de Falhas (Problemas Reportados)</h3>
-          <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Frequência de problemas nas partidas</p>
+          <h3>🚨 Análise de Falhas</h3>
+          <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Frequência de problemas nesta versão</p>
           <div class="chart-wrapper" id="failuresWrapper">
             <canvas id="failuresChart"></canvas>
           </div>
@@ -646,7 +647,6 @@
 
         <div class="chart-card">
           <h3>🕸️ Perfil de Desempenho do Robô</h3>
-          <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Com base nas médias e consistência</p>
           <div class="chart-wrapper">
             <canvas id="robotProfileRadarChart"></canvas>
           </div>
@@ -660,7 +660,7 @@
         </div>
 
         <div class="chart-card">
-          <h3>🥧 Contribuição por Ação (Média)</h3>
+          <h3>🥧 Contribuição por Ação</h3>
           <div class="chart-wrapper">
             <canvas id="contributionPieChart"></canvas>
           </div>
@@ -669,7 +669,7 @@
 
       <div class="panel" style="margin-top: 32px;">
         <div class="panel-header">
-          <span class="panel-title"><i class="fas fa-list"></i> Partidas Registadas</span>
+          <span class="panel-title"><i class="fas fa-list"></i> Partidas Registadas (Versão Ativa)</span>
           <span style="font-size:12px; color: var(--text-muted);">Clique no ícone para excluir</span>
         </div>
         <div class="matches-table-container">
@@ -678,7 +678,6 @@
               <tr>
                 <th>Data</th>
                 <th>Pilotos</th>
-                <th>Config</th>
                 <th>Auto</th>
                 <th>Tele</th>
                 <th>Total</th>
@@ -689,119 +688,40 @@
               </tr>
             </thead>
             <tbody id="matchesTableBody">
-              <tr><td colspan="10" style="text-align:center; padding: 30px;">A carregar partidas...</td></tr>
+              <tr><td colspan="9" style="text-align:center; padding: 30px;">A carregar partidas...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- ========== AJUDA ========== -->
     <section id="sec-help" class="section">
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title"><i class="fas fa-question-circle"></i> Central de Ajuda & Guia Rápido</span>
         </div>
-        <p style="margin-bottom: 32px; color: var(--text-muted); font-size: 16px;">Bem-vindo ao Mission Control da MetalLAB. Esta ferramenta foi desenhada para gerir todo o ciclo de vida do robô: desde o tracking de partidas até à engenharia e análise de desempenho.</p>
+        <p style="margin-bottom: 32px; color: var(--text-muted); font-size: 16px;">Bem-vindo ao Mission Control. Esta nova versão baseada em <strong>Entidades Hierárquicas</strong> melhora a precisão analítica do robô.</p>
         
         <div class="help-grid">
           <div class="help-card">
-            <div class="help-icon"><i class="fas fa-gamepad"></i></div>
-            <h3>Match Tracker</h3>
-            <p>Registe os pontos de cada partida em tempo real.</p>
-            <ul>
-              <li><i class="fas fa-check-circle"></i> Use os contadores +/- para ações (Classified, Overflow, etc.)</li>
-              <li><i class="fas fa-check-circle"></i> Selecione a configuração do robô no dropdown (puxado dos Blueprints).</li>
-              <li><i class="fas fa-check-circle"></i> Marque os problemas ocorridos para análise posterior.</li>
-              <li><i class="fas fa-check-circle"></i> Clique em <strong>Sincronizar Partida</strong> para guardar na nuvem.</li>
-            </ul>
-            <div class="help-tip">
-              <i class="fas fa-lightbulb"></i> <strong>Dica:</strong> A eficiência é calculada automaticamente com base na meta definida.
-            </div>
-          </div>
-          
-          <div class="help-card">
             <div class="help-icon"><i class="fas fa-code-branch"></i></div>
-            <h3>DevOps Log</h3>
-            <p>Documente todas as alterações de hardware e software.</p>
+            <h3>O Seletor Global</h3>
+            <p>No topo da página, você escolhe qual versão do robô está ativa.</p>
             <ul>
-              <li><i class="fas fa-check-circle"></i> Cada ticket deve ter um subsistema, versão e título.</li>
-              <li><i class="fas fa-check-circle"></i> Preencha a telemetria (KPI antes/depois) para medir o impacto.</li>
-              <li><i class="fas fa-check-circle"></i> Descreva a hipótese, solução e resultados (RCA).</li>
-              <li><i class="fas fa-check-circle"></i> O custo inserido alimenta automaticamente o BOM do Blueprint.</li>
+              <li><i class="fas fa-check-circle"></i> Tudo o que você fizer no site é aplicado à versão selecionada.</li>
+              <li><i class="fas fa-check-circle"></i> Se você salvar uma partida, ela pertence àquela versão.</li>
+              <li><i class="fas fa-check-circle"></i> Os gráficos refletem apenas a versão atual, isolando variáveis antigas.</li>
             </ul>
-            <div class="help-tip">
-              <i class="fas fa-lightbulb"></i> <strong>Dica:</strong> Use o botão "Puxar Dados da Nuvem" no Blueprint para importar as últimas versões.
-            </div>
           </div>
-          
           <div class="help-card">
             <div class="help-icon"><i class="fas fa-cubes"></i></div>
-            <h3>Blueprint & BOM</h3>
-            <p>Visualize e atualize a configuração atual do robô.</p>
+            <h3>Criar Novas Versões</h3>
+            <p>Acesse a aba <strong>Blueprint</strong> para criar uma nova versão.</p>
             <ul>
-              <li><i class="fas fa-check-circle"></i> Preencha o nome e versão no topo.</li>
-              <li><i class="fas fa-check-circle"></i> Os campos de cada subsistema podem ser preenchidos manualmente ou via botão "Puxar Dados".</li>
-              <li><i class="fas fa-check-circle"></i> O custo total é calculado automaticamente.</li>
-              <li><i class="fas fa-check-circle"></i> Guarde o Blueprint para criar uma nova versão comparável.</li>
+              <li><i class="fas fa-check-circle"></i> Digite um nome (ex: Titan) e uma versão (ex: v2.0).</li>
+              <li><i class="fas fa-check-circle"></i> Preencha o hardware atual.</li>
+              <li><i class="fas fa-check-circle"></i> Ao clicar em Gravar, a nova versão aparecerá no Seletor Global e estará pronta para receber partidas limpas.</li>
             </ul>
-          </div>
-          
-          <div class="help-card">
-            <div class="help-icon"><i class="fas fa-not-equal"></i></div>
-            <h3>Comparar Versões</h3>
-            <p>Analise a evolução entre dois Blueprints guardados.</p>
-            <ul>
-              <li><i class="fas fa-check-circle"></i> Selecione duas versões nos dropdowns.</li>
-              <li><i class="fas fa-check-circle"></i> A tabela destaca diferenças: <span style="color: var(--brand-tele);">verde</span> para melhoria, <span style="color: var(--brand-red);">vermelho</span> para piora.</li>
-              <li><i class="fas fa-check-circle"></i> Use para justificar alterações de design.</li>
-            </ul>
-          </div>
-          
-          <div class="help-card">
-            <div class="help-icon"><i class="fas fa-chart-line"></i></div>
-            <h3>Analytics</h3>
-            <p>Visualize o desempenho da equipa com gráficos interativos.</p>
-            <ul>
-              <li><i class="fas fa-check-circle"></i> O histórico mostra a evolução da pontuação com média móvel.</li>
-              <li><i class="fas fa-check-circle"></i> Gráficos de dispersão e pizza detalham a contribuição de cada ação.</li>
-              <li><i class="fas fa-check-circle"></i> A tabela de partidas permite excluir registos errados.</li>
-              <li><i class="fas fa-check-circle"></i> Use o botão "Atualizar Dados" para recarregar os gráficos.</li>
-            </ul>
-          </div>
-        </div>
-        
-        <div style="margin-top: 48px;">
-          <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-question-circle" style="color: var(--orange);"></i> Perguntas Frequentes (FAQ)</h3>
-          <div class="grid-2" style="gap: 32px;">
-            <div>
-              <div class="faq-item">
-                <h4>Como corrijo uma partida registada com erro?</h4>
-                <p>Na aba <strong>Analytics</strong>, localize a partida na tabela e clique no ícone de lixeira para excluí-la. Depois, regresse ao Match Tracker e registe novamente.</p>
-              </div>
-              <div class="faq-item">
-                <h4>O que significa "Consistência (CV)"?</h4>
-                <p>É o Coeficiente de Variação (desvio padrão / média). Quanto menor o valor, mais consistente é o desempenho do robô. Valores abaixo de 20% são considerados bons.</p>
-              </div>
-              <div class="faq-item">
-                <h4>Posso usar a ferramenta offline?</h4>
-                <p>Sim, os dados são guardados localmente durante a sessão e sincronizados com o Firebase assim que houver conexão. As alterações aparecerão em todos os dispositivos ligados à mesma conta Firebase.</p>
-              </div>
-            </div>
-            <div>
-              <div class="faq-item">
-                <h4>Como funciona o preenchimento automático do Blueprint?</h4>
-                <p>O botão "Puxar Dados da Nuvem" procura os commits mais recentes no DevOps Log para cada subsistema (DRV, SEN, MEC_INT, etc.) e preenche a versão e o custo associado.</p>
-              </div>
-              <div class="faq-item">
-                <h4>Por que os gráficos não aparecem?</h4>
-                <p>Certifique-se de que existem partidas registadas. Se ainda assim não aparecerem, clique em "Atualizar Dados" na aba Analytics ou mude de tema (claro/escuro) para forçar a renderização.</p>
-              </div>
-              <div class="faq-item">
-                <h4>Como mudo o tema para escuro?</h4>
-                <p>Clique no ícone de lua/sol no canto superior direito. A preferência é guardada automaticamente.</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -809,13 +729,12 @@
 
   </main>
 
-  <!-- Container para Toasts -->
   <div class="toast-container" id="toastContainer"></div>
 
   <script type="module">
-    // ========== JAVASCRIPT COMPLETO ==========
+    // ========== JAVASCRIPT ATUALIZADO (HIERÁRQUICO) ==========
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, setDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB6ynxAi14VHRWTro2Rm3VQAQS9rn2CtmE",
@@ -830,13 +749,21 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Variáveis Globais da Nova Arquitetura
+    const ROBO_ATIVO = "metal_lab_principal"; 
+    let versaoAtiva = "v1.0 - Base Build";
+
     let engLogsData = [];
     let blueprintsData = []; 
     let matchesData = []; 
     let chartsInstances = {}; 
     let tagsProblemas = ['Partida Limpa'];
-    let robotVersionsArray = ["v1.0 - Base Build"];
+    let robotVersionsArray = [];
     let formEngOpen = false;
+
+    // Listeners que podem ser desmontados quando a versão muda
+    let unsubscribePartidas = null;
+    let unsubscribeEngenharia = null;
 
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -887,17 +814,107 @@
       btn.addEventListener('click', (e) => switchTab(e.target.getAttribute('data-target-tab')));
     });
 
+    // UI Updates
     const updateMatchDropdown = () => {
       const select = document.getElementById('matchMec');
-      const currentVal = select.value;
-      select.innerHTML = '<option value="">Selecione uma versão guardada...</option>';
-      [...new Set(robotVersionsArray)].forEach(v => {
-        if(v) { const option = document.createElement('option'); option.value = v; option.text = v; select.appendChild(option); }
-      });
-      if(currentVal && robotVersionsArray.includes(currentVal)) select.value = currentVal;
+      select.innerHTML = `<option value="${versaoAtiva}">${versaoAtiva}</option>`;
+      select.value = versaoAtiva;
     };
 
-    // Match Tracker
+    const updateCompareDropdowns = () => {
+      const compA = document.getElementById('compA');
+      const compB = document.getElementById('compB');
+      const valA = compA.value;
+      const valB = compB.value;
+
+      let options = '<option value="">Selecione uma Versão...</option>';
+      blueprintsData.forEach(bp => {
+        options += `<option value="${bp.id}">${bp.id}</option>`;
+      });
+
+      compA.innerHTML = options;
+      compB.innerHTML = options;
+
+      if(valA) compA.value = valA;
+      if(valB) compB.value = valB;
+    };
+
+    // --- NOVA LÓGICA HIERÁRQUICA DO FIREBASE ---
+
+    // 1. Escutar todas as Versões criadas para preencher o Menu Global e o Compare
+    onSnapshot(collection(db, "robos", ROBO_ATIVO, "versoes"), (snapshot) => {
+      const select = document.getElementById('globalVersionSelect');
+      const currentVal = select.value;
+      
+      select.innerHTML = ''; 
+      blueprintsData = [];
+      robotVersionsArray = [];
+
+      if (snapshot.empty) {
+        const opt = document.createElement('option');
+        opt.value = "v1.0 - Base Build"; opt.text = "v1.0 - Base Build";
+        select.appendChild(opt);
+        robotVersionsArray.push("v1.0 - Base Build");
+      } else {
+        snapshot.forEach((docItem) => {
+          const data = docItem.data();
+          blueprintsData.push({ id: docItem.id, ...data });
+          robotVersionsArray.push(docItem.id);
+          
+          const option = document.createElement('option');
+          option.value = docItem.id;
+          option.text = docItem.id;
+          select.appendChild(option);
+        });
+      }
+
+      if(robotVersionsArray.includes(currentVal)) {
+          select.value = currentVal;
+      } else if (select.options.length > 0) {
+          select.value = select.options[0].value;
+      }
+      versaoAtiva = select.value;
+
+      updateMatchDropdown();
+      updateCompareDropdowns();
+      iniciarEscutasDaVersao(); 
+    });
+
+    // 2. Evento de troca de Versão Global
+    document.getElementById('globalVersionSelect').addEventListener('change', (e) => {
+        versaoAtiva = e.target.value;
+        showToast(`Contexto alterado: visualizando ${versaoAtiva}`, 'success');
+        updateMatchDropdown();
+        iniciarEscutasDaVersao();
+    });
+
+    // 3. Função Central para buscar Partidas e Engenharia APENAS da versão selecionada
+    function iniciarEscutasDaVersao() {
+      // Limpa escutas anteriores para não misturar dados
+      if(unsubscribePartidas) unsubscribePartidas();
+      if(unsubscribeEngenharia) unsubscribeEngenharia();
+
+      // Escutar Partidas
+      const pathPartidas = collection(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "partidas");
+      const qMatches = query(pathPartidas, orderBy("timestamp", "desc"), limit(50));
+      
+      unsubscribePartidas = onSnapshot(qMatches, (snap) => {
+        matchesData = [];
+        snap.forEach(docItem => matchesData.push({ docId: docItem.id, ...docItem.data() }));
+        renderMatchesTable();
+        if(document.getElementById('sec-charts').classList.contains('active')) refreshCharts();
+      });
+
+      // Escutar Engenharia
+      const pathEng = collection(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "engenharia");
+      unsubscribeEngenharia = onSnapshot(query(pathEng, orderBy("timestamp", "desc")), (snap) => {
+        engLogsData = [];
+        snap.forEach(docItem => engLogsData.push({ docId: docItem.id, ...docItem.data() }));
+        renderEngFeed();
+      });
+    }
+
+    // Match Tracker - Cálculo
     const calcMatchScore = () => {
       const getM = id => parseInt(document.getElementById(id).value) || 0;
       const auto = getM('autoLeave') + (getM('autoClass') * 3) + (getM('autoOver') * 1) + (getM('autoPat') * 2);
@@ -928,11 +945,9 @@
         const delta = parseInt(btn.getAttribute('data-delta'));
         const input = document.getElementById(targetId);
         const display = document.getElementById('val-' + targetId);
-        
         let val = parseInt(input.value) || 0; 
         val += delta; 
         if(val < 0) val = 0; 
-        
         input.value = val; 
         display.innerText = val; 
         calcMatchScore();
@@ -947,11 +962,9 @@
         const isOrange = btn.getAttribute('data-orange') === 'true';
 
         document.getElementById(targetId).value = val; 
-        
         group.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active', 'active-orange')); 
         if (isOrange && val > 0) btn.classList.add('active-orange'); 
         else btn.classList.add('active'); 
-        
         calcMatchScore();
       });
     });
@@ -969,26 +982,19 @@
         }
         
         const btnLimpa = container.querySelector('.active-orange');
-        if(btnLimpa) { 
-          btnLimpa.classList.remove('active-orange'); 
-          tagsProblemas = []; 
-        }
+        if(btnLimpa) { btnLimpa.classList.remove('active-orange'); tagsProblemas = []; }
         
         btn.classList.toggle('active'); 
         const val = btn.innerText;
         
-        if(btn.classList.contains('active')) {
-          tagsProblemas.push(val); 
-        } else { 
-          const idx = tagsProblemas.indexOf(val); 
-          if(idx > -1) tagsProblemas.splice(idx, 1); 
-        }
+        if(btn.classList.contains('active')) { tagsProblemas.push(val); } 
+        else { const idx = tagsProblemas.indexOf(val); if(idx > -1) tagsProblemas.splice(idx, 1); }
       });
     });
 
+    // Salvar Partida HIERÁRQUICA
     document.getElementById('btnSaveMatch').addEventListener('click', async () => {
-      const mec = document.getElementById('matchMec').value.trim();
-      if(!mec) { showToast('A Configuração do Robô é obrigatória!', 'error'); document.getElementById('matchMec').focus(); return; }
+      if(!versaoAtiva) { showToast('Sem versão ativa configurada!', 'error'); return; }
 
       const btn = document.getElementById('btnSaveMatch');
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A sincronizar...'; 
@@ -1011,7 +1017,6 @@
 
       const matchData = {
         pilotos: document.getElementById('pilotos').value,
-        mecanismo: mec, 
         target: Number(document.getElementById('pontEsperada').value),
         auto: Number(document.getElementById('hudAuto').innerText), 
         tele: Number(document.getElementById('hudTele').innerText), 
@@ -1024,11 +1029,13 @@
       };
 
       try {
-        await addDoc(collection(db, "partidas"), matchData);
+        const pathPartidas = collection(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "partidas");
+        await addDoc(pathPartidas, matchData);
+        
         btn.innerHTML = '<i class="fas fa-check"></i> Gravado na Cloud!'; 
         btn.classList.remove('loading'); 
         btn.classList.add('success');
-        showToast('Partida sincronizada com sucesso!', 'success');
+        showToast('Partida gravada na ' + versaoAtiva, 'success');
         
         setTimeout(() => {
           btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida'; 
@@ -1049,27 +1056,20 @@
           document.querySelectorAll('#grp-problemas .tag').forEach(b => b.classList.remove('active', 'active-orange')); 
           document.querySelector('#grp-problemas .tag[data-exclusive="true"]').classList.add('active-orange');
           
-          calcMatchScore(); 
-          window.scrollTo(0,0);
-          if(document.getElementById('sec-charts').classList.contains('active')) setTimeout(refreshCharts, 100);
+          calcMatchScore(); window.scrollTo(0,0);
         }, 1500);
       } catch (e) { 
-        console.error(e); 
-        showToast('Erro ao gravar na Nuvem.', 'error'); 
-        btn.innerHTML = '<i class="fas fa-times"></i> Erro'; 
-        btn.classList.remove('loading'); 
+        console.error(e); showToast('Erro ao gravar na Nuvem.', 'error'); 
+        btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading'); 
       }
     });
 
     window.deleteMatch = async (docId) => {
       if(!confirm("Excluir esta partida permanentemente?")) return;
       try {
-        await deleteDoc(doc(db, "partidas", docId));
+        await deleteDoc(doc(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "partidas", docId));
         showToast('Partida excluída.', 'success');
-      } catch(e) {
-        console.error(e);
-        showToast('Erro ao excluir.', 'error');
-      }
+      } catch(e) { console.error(e); showToast('Erro ao excluir.', 'error'); }
     };
 
     // DevOps Log
@@ -1077,7 +1077,6 @@
       formEngOpen = !formEngOpen; 
       document.getElementById('formEngenharia').style.display = formEngOpen ? 'block' : 'none'; 
     };
-    
     document.getElementById('btnOpenEngForm').addEventListener('click', toggleEngForm);
     document.getElementById('btnCloseEngForm').addEventListener('click', toggleEngForm);
 
@@ -1085,9 +1084,7 @@
       const oldV = parseFloat(document.getElementById('kpiOld').value) || 0; 
       const newV = parseFloat(document.getElementById('kpiNew').value) || 0; 
       const deltaInput = document.getElementById('kpiDelta');
-      
       if (oldV === 0 && newV === 0) { deltaInput.value = ''; deltaInput.className = 'tele-val'; return; }
-      
       const delta = (newV - oldV).toFixed(2); 
       deltaInput.value = delta > 0 ? `+${delta}` : delta;
       if (delta >= 0) { deltaInput.className = 'tele-val delta-pos'; } else { deltaInput.className = 'tele-val delta-neg'; }
@@ -1100,14 +1097,13 @@
       const ver = document.getElementById('engVer').value.trim();
       const title = document.getElementById('engTitulo').value.trim();
       
-      if(!ver || !title) { showToast('Versão e Título são obrigatórios!', 'error'); return; }
+      if(!ver || !title) { showToast('Versão da Peça e Título são obrigatórios!', 'error'); return; }
 
       const entry = {
         ticket: `${sys}-${Math.floor(Math.random()*1000).toString().padStart(3, '0')}`,
         sys: sys, versao: ver, titulo: title, 
         kpiNome: document.getElementById('kpiName').value || 'KPI', 
-        kpiOld: document.getElementById('kpiOld').value, 
-        kpiNew: document.getElementById('kpiNew').value, 
+        kpiOld: document.getElementById('kpiOld').value, kpiNew: document.getElementById('kpiNew').value, 
         kpiDelta: document.getElementById('kpiDelta').value, 
         hipotese: document.getElementById('engHyp').value.trim(), 
         tradeoff: document.getElementById('engTrade').value.trim(), 
@@ -1115,23 +1111,25 @@
         status: document.getElementById('engStatus').value, 
         link: document.getElementById('engLink').value.trim(), 
         custo: document.getElementById('engCost').value, 
-        timestamp: new Date(), 
-        dataStr: new Date().toLocaleDateString('pt-BR')
+        timestamp: new Date(), dataStr: new Date().toLocaleDateString('pt-BR')
       };
 
       try {
-        await addDoc(collection(db, "engenharia"), entry);
-        showToast('Commit registado!', 'success');
+        const pathEng = collection(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "engenharia");
+        await addDoc(pathEng, entry);
+        showToast('Commit registado em ' + versaoAtiva, 'success');
         ['engVer','engTitulo','kpiOld','kpiNew','kpiDelta','engHyp','engTrade','engRca','engLink','engCost'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('kpiDelta').className = 'tele-val';
         toggleEngForm();
-        if(document.getElementById('sec-charts').classList.contains('active')) setTimeout(refreshCharts, 100);
       } catch (e) { console.error(e); showToast('Erro ao gravar.', 'error'); }
     });
 
     const deleteEng = async (docId) => {
-      if(!confirm("Deletar este ticket permanentemente da nuvem?")) return;
-      try { await deleteDoc(doc(db, "engenharia", docId)); showToast('Ticket removido.', 'success'); } catch (e) { console.error(e); }
+      if(!confirm("Deletar este ticket permanentemente?")) return;
+      try { 
+        await deleteDoc(doc(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "engenharia", docId)); 
+        showToast('Ticket removido.', 'success'); 
+      } catch (e) { console.error(e); }
     };
 
     document.getElementById('engFeed').addEventListener('click', (e) => {
@@ -1139,37 +1137,21 @@
       if(btn) deleteEng(btn.getAttribute('data-id'));
     });
 
-    onSnapshot(collection(db, "engenharia"), (snapshot) => {
+    function renderEngFeed() {
       const feed = document.getElementById('engFeed');
-      if (snapshot.empty) {
-        engLogsData = [];
-        feed.innerHTML = `<div class="panel" id="emptyEng" style="text-align: center; padding: 60px 20px; background: transparent; border: 2px dashed var(--border-light); box-shadow: none;"><i class="fas fa-code-branch" style="font-size: 40px; margin-bottom: 16px; color: var(--border-focus);"></i><h3 style="color:var(--text-main); margin-bottom:8px; font-size: 16px;">Branch Vazia</h3><p style="color: var(--text-muted); font-size: 14px;">Não há versões documentadas na nuvem.</p></div>`;
+      if (engLogsData.length === 0) {
+        feed.innerHTML = `<div class="panel" id="emptyEng" style="text-align: center; padding: 60px 20px; background: transparent; border: 2px dashed var(--border-light); box-shadow: none;"><i class="fas fa-code-branch" style="font-size: 40px; margin-bottom: 16px; color: var(--border-focus);"></i><h3 style="color:var(--text-main); margin-bottom:8px; font-size: 16px;">Branch Vazia para ${versaoAtiva}</h3><p style="color: var(--text-muted); font-size: 14px;">Não há modificações documentadas nesta versão.</p></div>`;
         return;
       }
-
-      let logsArray = [];
-      snapshot.forEach((docItem) => { logsArray.push({ docId: docItem.id, ...docItem.data() }); });
-
-      logsArray.sort((a, b) => {
-        const timeA = a.timestamp && a.timestamp.toMillis ? a.timestamp.toMillis() : 0;
-        const timeB = b.timestamp && b.timestamp.toMillis ? b.timestamp.toMillis() : 0;
-        return timeB - timeA; 
-      });
-
-      engLogsData = logsArray; 
-      let html = '';
       
-      logsArray.forEach((e) => {
-        const safeStatus = e.status || 'Documentado';
-        const safeTicket = e.ticket || 'SYS-000';
-        const safeDataStr = e.dataStr || 'Data Desconhecida';
-        
+      let html = '';
+      engLogsData.forEach((e) => {
+        const safeStatus = e.status || 'Documentado'; const safeTicket = e.ticket || 'SYS-000'; const safeDataStr = e.dataStr || 'Data Desconhecida';
         let badgeClass = 'status-failed'; let borderColor = 'var(--text-muted)';
         if(safeStatus.includes('Prototipagem')) { badgeClass = 'status-testing'; borderColor = 'var(--brand-warn)'; }
         else if(safeStatus.includes('Validado') || safeStatus.includes('Deployed')) { badgeClass = 'status-deployed'; borderColor = 'var(--brand-tele)'; }
 
-        html += `
-        <div class="ticket-entry" style="border-left-color: ${borderColor}">
+        html += `<div class="ticket-entry" style="border-left-color: ${borderColor}">
           <div class="ticket-header">
             <div>
               <span class="ticket-id"><i class="fas fa-ticket-alt"></i> ${safeTicket}</span>
@@ -1179,9 +1161,7 @@
             </div>
             <button class="delete-eng-btn" data-id="${e.docId}" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 16px; transition: color 0.2s;"><i class="fas fa-trash"></i></button>
           </div>
-          
-          ${e.kpiOld || e.kpiNew ? `
-          <div style="display:flex; gap:16px; margin-bottom:16px; overflow-x: auto; padding-bottom: 5px;">
+          ${e.kpiOld || e.kpiNew ? `<div style="display:flex; gap:16px; margin-bottom:16px; overflow-x: auto; padding-bottom: 5px;">
             <div style="background:var(--bg-input); padding:8px 16px; border-radius:var(--radius-sm); border:1px solid var(--border-light); flex:1; min-width: 120px; display:flex; justify-content:space-between; align-items:center;">
               <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">${e.kpiNome || 'KPI'} (Antes)</span><span style="font-family:'JetBrains Mono'; font-weight:700; font-size:16px;">${e.kpiOld || '0'}</span>
             </div>
@@ -1192,296 +1172,173 @@
               <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Evolução (Δ)</span><span style="font-family:'JetBrains Mono'; font-weight:700; font-size:16px;" class="${parseFloat(e.kpiDelta) >= 0 ? 'delta-pos' : 'delta-neg'}">${e.kpiDelta || '0'}</span>
             </div>
           </div>` : ''}
-
           <div class="data-grid">
             ${e.hipotese ? `<div class="data-block full"><h4><i class="fas fa-flask"></i> Hipótese / Problema</h4><p>${e.hipotese}</p></div>` : ''}
             ${e.tradeoff ? `<div class="data-block"><h4><i class="fas fa-balance-scale"></i> Solução / Trade-off</h4><p>${e.tradeoff}</p></div>` : ''}
             ${e.rca ? `<div class="data-block"><h4><i class="fas fa-search-plus"></i> RCA / Resultados</h4><p>${e.rca}</p></div>` : ''}
-            ${e.link ? `<div class="data-block full" style="padding: 12px 16px;"><a href="${e.link}" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;"><i class="fas fa-external-link-alt"></i> Acessar Repositório / CAD / Dados Externos</a></div>` : ''}
+            ${e.link ? `<div class="data-block full" style="padding: 12px 16px;"><a href="${e.link}" target="_blank" style="color:var(--brand-blue); text-decoration:none; font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;"><i class="fas fa-external-link-alt"></i> Acessar Repositório / Dados Externos</a></div>` : ''}
           </div>
         </div>`;
       });
-
       feed.innerHTML = html;
-    }, (error) => {
-      console.error("Erro ao ler dados:", error);
-      document.getElementById('engFeed').innerHTML = `<p style="color: var(--brand-red); text-align: center; padding: 20px; border: 1px solid var(--brand-red); border-radius: 8px; background: rgba(239, 68, 68, 0.1);"><strong>Erro de Ligação</strong></p>`;
-    });
-
-    // Blueprints
-    const updateCompareDropdowns = () => {
-      const compA = document.getElementById('compA');
-      const compB = document.getElementById('compB');
-      const valA = compA.value;
-      const valB = compB.value;
-
-      let options = '<option value="">Selecione um Blueprint...</option>';
-      blueprintsData.forEach(bp => {
-        if(bp.versaoGlobal) options += `<option value="${bp.versaoGlobal}">${bp.versaoGlobal}</option>`;
-      });
-
-      compA.innerHTML = options;
-      compB.innerHTML = options;
-
-      if(valA) compA.value = valA;
-      if(valB) compB.value = valB;
-    };
-
-    const renderCompare = () => {
-      const valA = document.getElementById('compA').value;
-      const valB = document.getElementById('compB').value;
-      const res = document.getElementById('compareResults');
-
-      if(!valA || !valB) {
-        res.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução do robô.</p>';
-        return;
-      }
-
-      const bpA = blueprintsData.find(b => b.versaoGlobal === valA);
-      const bpB = blueprintsData.find(b => b.versaoGlobal === valB);
-
-      if(!bpA || !bpB) return;
-
-      const compareRow = (label, key, isNumeric = false) => {
-        let valDataA = bpA[key];
-        let valDataB = bpB[key];
-
-        if (typeof valDataA === 'boolean') valDataA = valDataA ? 'Sim' : 'Não';
-        if (typeof valDataB === 'boolean') valDataB = valDataB ? 'Sim' : 'Não';
-
-        let a = valDataA || '-';
-        let b = valDataB || '-';
-        let classA = '';
-        let classB = '';
-
-        if(a !== b) {
-            classA = 'comp-diff';
-            classB = 'comp-diff';
-            if(isNumeric) {
-                let numA = parseFloat(a) || 0;
-                let numB = parseFloat(b) || 0;
-                if(numA < numB) { classA = 'comp-better'; classB = 'comp-worse'; }
-                else if (numB < numA) { classB = 'comp-better'; classA = 'comp-worse'; }
-            }
-        }
-
-        return `<tr>
-          <th>${label}</th>
-          <td class="${classA}">${isNumeric && a !== '-' && key === 'custoTotal' ? 'R$ '+a : a}</td>
-          <td class="${classB}">${isNumeric && b !== '-' && key === 'custoTotal' ? 'R$ '+b : b}</td>
-        </tr>`;
-      };
-
-      res.innerHTML = `
-        <table class="comp-table">
-          <thead>
-            <tr><th>Atributo</th><th>${bpA.versaoGlobal}</th><th>${bpB.versaoGlobal}</th></tr>
-          </thead>
-          <tbody>
-            ${compareRow('Chassi (DRV)', 'drv')}
-            ${compareRow('Sensores (SEN)', 'sen')}
-            ${compareRow('Intake (MEC1)', 'mec1')}
-            ${compareRow('Elevador (MEC2)', 'mec2')}
-            ${compareRow('Software (SW)', 'sw')}
-            ${compareRow('Peso (kg)', 'peso', true)}
-            ${compareRow('Custo Total', 'custoTotal', true)}
-            ${compareRow('Sizing (18x18)', 'sizingAprovado')}
-          </tbody>
-        </table>
-      `;
-    };
-
-    document.getElementById('compA').addEventListener('change', renderCompare);
-    document.getElementById('compB').addEventListener('change', renderCompare);
-
-    onSnapshot(collection(db, "blueprints"), (snapshot) => {
-      robotVersionsArray = ["v1.0 - Base Build"]; 
-      blueprintsData = [];
-
-      snapshot.forEach((docItem) => {
-        const data = docItem.data();
-        blueprintsData.push(data);
-        if (data.versaoGlobal && !robotVersionsArray.includes(data.versaoGlobal)) {
-          robotVersionsArray.push(data.versaoGlobal);
-        }
-      });
-
-      updateMatchDropdown();
-      updateCompareDropdowns();
-      if(document.getElementById('sec-compare').classList.contains('active')) renderCompare();
-    });
-
-    // Partidas
-    const qMatches = query(collection(db, "partidas"), orderBy("timestamp", "desc"), limit(20));
-    onSnapshot(qMatches, (snap) => {
-      matchesData = [];
-      snap.forEach(doc => {
-        matchesData.push({ docId: doc.id, ...doc.data() });
-      });
-      matchesData.reverse();
-      
-      if(document.getElementById('sec-charts').classList.contains('active')) {
-        setTimeout(refreshCharts, 100);
-      }
-      renderMatchesTable();
-    });
-
-    function renderMatchesTable() {
-      const tbody = document.getElementById('matchesTableBody');
-      if (!tbody) return;
-      
-      if (matchesData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding: 30px;">Nenhuma partida registada.</td></tr>';
-        return;
-      }
-
-      let html = '';
-      matchesData.slice().reverse().forEach(m => {
-        const dataStr = m.timestamp ? new Date(m.timestamp.seconds * 1000).toLocaleDateString('pt-BR') : '-';
-        html += `<tr>
-          <td>${dataStr}</td>
-          <td>${m.pilotos || '-'}</td>
-          <td>${m.mecanismo || '-'}</td>
-          <td>${m.auto || 0}</td>
-          <td>${m.tele || 0}</td>
-          <td><strong>${m.total || 0}</strong></td>
-          <td style="color:var(--brand-red);">${m.fouls || 0}</td>
-          <td>${m.eficiencia || '-'}</td>
-          <td>${m.problemas || 'Limpa'}</td>
-          <td><button class="delete-match-btn" onclick="deleteMatch('${m.docId}')" title="Excluir partida"><i class="fas fa-trash-alt"></i></button></td>
-        </tr>`;
-      });
-      tbody.innerHTML = html;
     }
 
-    // Blueprint BOM
+    // Blueprints e BOM
     const calcTotalCost = () => {
       const drv = parseFloat(document.getElementById('bp-drv-cost').value) || 0;
       const sen = parseFloat(document.getElementById('bp-sen-cost').value) || 0;
       const mec1 = parseFloat(document.getElementById('bp-mec1-cost').value) || 0;
       const mec2 = parseFloat(document.getElementById('bp-mec2-cost').value) || 0;
-      const total = drv + sen + mec1 + mec2;
-      document.getElementById('bomTotal').innerText = total.toFixed(2);
+      document.getElementById('bomTotal').innerText = (drv + sen + mec1 + mec2).toFixed(2);
     };
 
     document.querySelectorAll('.bp-cost-input').forEach(input => input.addEventListener('input', calcTotalCost));
-
-    document.getElementById('btnSize').addEventListener('click', function() {
-      this.classList.toggle('active-orange');
-    });
+    document.getElementById('btnSize').addEventListener('click', function() { this.classList.toggle('active-orange'); });
 
     document.getElementById('btnAutoFillBlueprint').addEventListener('click', () => {
-      if(!engLogsData || engLogsData.length === 0) { showToast('Não existem versões registadas!', 'error'); return; }
+      if(!engLogsData || engLogsData.length === 0) { showToast('Não há peças registadas na versão atual!', 'error'); return; }
       
       let latest = { 'DRV': {v:'', c:''}, 'SEN': {v:'', c:''}, 'MEC_INT': {v:'', c:''}, 'MEC_ELE': {v:'', c:''}, 'SW': {v:'', c:''} };
-
       for (let log of engLogsData) {
         let sys = log.ticket ? log.ticket.split('-')[0] : (log.sys || '');
         if (sys === 'MEC') sys = 'MEC_INT'; 
-        if (latest[sys] !== undefined && latest[sys].v === '') { 
-          latest[sys].v = log.versao || ''; 
-          latest[sys].c = log.custo || ''; 
-        }
+        if (latest[sys] !== undefined && latest[sys].v === '') { latest[sys].v = log.versao || ''; latest[sys].c = log.custo || ''; }
       }
 
       const setVal = (id, val) => { const el = document.getElementById(id); if(el && val && el.value === '') el.value = val; };
-      
       setVal('bp-drv', latest['DRV'].v); setVal('bp-drv-cost', latest['DRV'].c);
       setVal('bp-sen', latest['SEN'].v); setVal('bp-sen-cost', latest['SEN'].c);
       setVal('bp-mec1', latest['MEC_INT'].v); setVal('bp-mec1-cost', latest['MEC_INT'].c);
       setVal('bp-mec2', latest['MEC_ELE'].v); setVal('bp-mec2-cost', latest['MEC_ELE'].c);
       setVal('bp-sw', latest['SW'].v);
-      
-      calcTotalCost();
-      showToast('Dados puxados da Nuvem!', 'success');
+      calcTotalCost(); showToast('Hardware puxado da Branch!', 'success');
     });
 
     document.getElementById('btnSaveBlueprint').addEventListener('click', async () => {
       const nome = document.getElementById('robotName').value.trim();
       const ver = document.getElementById('robotVersion').value.trim();
-
       if(!nome || !ver) { showToast('Preencha o Nome e a Versão do Robô!', 'error'); return; }
       
       const global = `${nome} - ${ver}`;
-      
       const btn = document.getElementById('btnSaveBlueprint');
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A guardar...';
-      btn.classList.add('loading');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A gravar na árvore...'; btn.classList.add('loading');
 
       const blueprintData = {
-        versaoGlobal: global,
-        drv: document.getElementById('bp-drv').value,
-        sen: document.getElementById('bp-sen').value,
-        mec1: document.getElementById('bp-mec1').value,
-        mec2: document.getElementById('bp-mec2').value,
-        sw: document.getElementById('bp-sw').value,
-        peso: document.getElementById('robotWeight').value,
+        drv: document.getElementById('bp-drv').value, sen: document.getElementById('bp-sen').value,
+        mec1: document.getElementById('bp-mec1').value, mec2: document.getElementById('bp-mec2').value,
+        sw: document.getElementById('bp-sw').value, peso: document.getElementById('robotWeight').value,
         sizingAprovado: document.getElementById('btnSize').classList.contains('active-orange'),
-        custoTotal: document.getElementById('bomTotal').innerText,
-        timestamp: new Date()
+        custoTotal: document.getElementById('bomTotal').innerText, timestamp: new Date()
       };
 
       try {
-        await addDoc(collection(db, "blueprints"), blueprintData);
-        showToast('Blueprint guardado!', 'success');
-        btn.innerHTML = '<i class="fas fa-check"></i> Blueprint Guardado!';
-        btn.classList.remove('loading');
-        btn.classList.add('success');
+        const versaoRef = doc(db, "robos", ROBO_ATIVO, "versoes", global);
+        await setDoc(versaoRef, blueprintData); // Cria o Nó da nova versão
         
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Atualizar Blueprint'; btn.classList.remove('success'); }, 1500);
+        showToast('Nova versão criada e ativada!', 'success');
+        btn.innerHTML = '<i class="fas fa-check"></i> Criado!'; btn.classList.remove('loading'); btn.classList.add('success');
+        
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Gravar Nova Versão'; btn.classList.remove('success'); }, 1500);
       } catch (e) {
-        console.error(e);
-        showToast('Erro ao gravar o Blueprint.', 'error');
-        btn.innerHTML = '<i class="fas fa-times"></i> Erro';
-        btn.classList.remove('loading');
+        console.error(e); showToast('Erro ao criar Versão.', 'error');
+        btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading');
       }
     });
 
-    // Gráficos
+    // Compare
+    const renderCompare = () => {
+      const valA = document.getElementById('compA').value; const valB = document.getElementById('compB').value;
+      const res = document.getElementById('compareResults');
+
+      if(!valA || !valB) { res.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução do robô.</p>'; return; }
+
+      const bpA = blueprintsData.find(b => b.id === valA); const bpB = blueprintsData.find(b => b.id === valB);
+      if(!bpA || !bpB) return;
+
+      const compareRow = (label, key, isNumeric = false) => {
+        let valDataA = bpA[key]; let valDataB = bpB[key];
+        if (typeof valDataA === 'boolean') valDataA = valDataA ? 'Sim' : 'Não';
+        if (typeof valDataB === 'boolean') valDataB = valDataB ? 'Sim' : 'Não';
+        let a = valDataA || '-'; let b = valDataB || '-';
+        let classA = ''; let classB = '';
+
+        if(a !== b) {
+            classA = 'comp-diff'; classB = 'comp-diff';
+            if(isNumeric) {
+                let numA = parseFloat(a) || 0; let numB = parseFloat(b) || 0;
+                if(numA < numB) { classA = 'comp-better'; classB = 'comp-worse'; }
+                else if (numB < numA) { classB = 'comp-better'; classA = 'comp-worse'; }
+            }
+        }
+
+        return `<tr><th>${label}</th><td class="${classA}">${isNumeric && a !== '-' && key === 'custoTotal' ? 'R$ '+a : a}</td><td class="${classB}">${isNumeric && b !== '-' && key === 'custoTotal' ? 'R$ '+b : b}</td></tr>`;
+      };
+
+      res.innerHTML = `<table class="comp-table"><thead><tr><th>Atributo</th><th>${bpA.id}</th><th>${bpB.id}</th></tr></thead><tbody>
+            ${compareRow('Chassi (DRV)', 'drv')} ${compareRow('Sensores (SEN)', 'sen')}
+            ${compareRow('Intake (MEC1)', 'mec1')} ${compareRow('Elevador (MEC2)', 'mec2')}
+            ${compareRow('Software (SW)', 'sw')} ${compareRow('Peso (kg)', 'peso', true)}
+            ${compareRow('Custo Total', 'custoTotal', true)} ${compareRow('Sizing (18x18)', 'sizingAprovado')}
+          </tbody></table>`;
+    };
+
+    document.getElementById('compA').addEventListener('change', renderCompare);
+    document.getElementById('compB').addEventListener('change', renderCompare);
+
+    // Tabela de Partidas
+    function renderMatchesTable() {
+      const tbody = document.getElementById('matchesTableBody');
+      if (!tbody) return;
+      if (matchesData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px;">Nenhuma partida registada para <strong>${versaoAtiva}</strong>.</td></tr>`; return;
+      }
+      let html = '';
+      matchesData.forEach(m => {
+        const dataStr = m.timestamp ? new Date(m.timestamp.seconds * 1000).toLocaleDateString('pt-BR') : '-';
+        html += `<tr><td>${dataStr}</td><td>${m.pilotos || '-'}</td><td>${m.auto || 0}</td><td>${m.tele || 0}</td>
+          <td><strong>${m.total || 0}</strong></td><td style="color:var(--brand-red);">${m.fouls || 0}</td>
+          <td>${m.eficiencia || '-'}</td><td>${m.problemas || 'Limpa'}</td>
+          <td><button class="delete-match-btn" onclick="deleteMatch('${m.docId}')" title="Excluir partida"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // Gráficos (Baseados Apenas na Versão Ativa)
     const refreshCharts = () => {
       const isDark = document.body.classList.contains('dark-theme');
-      const textColor = isDark ? '#ffffff' : '#111827';
-      const gridColor = isDark ? '#333333' : '#e5e7eb';
-      const orange = '#FF5E00';
-      const green = '#10b981';
-      const blue = '#3b82f6';
-      const bgOrange = 'rgba(255, 94, 0, 0.2)';
+      const textColor = isDark ? '#ffffff' : '#111827'; const gridColor = isDark ? '#333333' : '#e5e7eb';
+      const orange = '#FF5E00'; const green = '#10b981'; const blue = '#3b82f6'; const bgOrange = 'rgba(255, 94, 0, 0.2)';
 
       Object.keys(chartsInstances).forEach(key => { if(chartsInstances[key]) chartsInstances[key].destroy(); });
 
       const sysCounts = { 'MEC_INT': 0, 'MEC_ELE': 0, 'DRV': 0, 'SEN': 0, 'SW': 0, 'STR': 0 };
       engLogsData.forEach(log => {
         let s = log.ticket ? log.ticket.split('-')[0] : log.sys;
-        if (s === 'MEC') s = 'MEC_INT'; 
-        if(sysCounts[s] !== undefined) sysCounts[s]++;
+        if (s === 'MEC') s = 'MEC_INT'; if(sysCounts[s] !== undefined) sysCounts[s]++;
       });
 
       chartsInstances.polar = new Chart(document.getElementById('devOpsEffortChart'), {
-        type: 'polarArea',
-        data: {
-          labels: ['Intake', 'Elevador', 'Chassi', 'Sensores', 'Código', 'Estratégia'],
-          datasets: [{
-            data: [sysCounts.MEC_INT, sysCounts.MEC_ELE, sysCounts.DRV, sysCounts.SEN, sysCounts.SW, sysCounts.STR],
-            backgroundColor: [ orange, '#f59e0b', blue, '#8b5cf6', green, '#ef4444' ],
-            borderWidth: 1, borderColor: isDark ? '#121212' : '#fff'
-          }]
-        },
+        type: 'polarArea', data: { labels: ['Intake', 'Elevador', 'Chassi', 'Sensores', 'Código', 'Estratégia'], datasets: [{ data: [sysCounts.MEC_INT, sysCounts.MEC_ELE, sysCounts.DRV, sysCounts.SEN, sysCounts.SW, sysCounts.STR], backgroundColor: [ orange, '#f59e0b', blue, '#8b5cf6', green, '#ef4444' ], borderWidth: 1, borderColor: isDark ? '#121212' : '#fff' }] },
         options: { maintainAspectRatio: false, scales: { r: { grid: { color: gridColor }, ticks: { display: false } } }, plugins: { legend: { display: true, position: 'right', labels: { color: textColor } } } }
       });
 
-      if(matchesData.length === 0) return;
+      if(matchesData.length === 0) {
+        // Reset dos HUDs e Gráficos de Partidas se a versão estiver vazia
+        document.getElementById('avgTotal').innerText = '0'; document.getElementById('bestMatch').innerText = '0';
+        document.getElementById('consistencyCV').innerText = '--%'; document.getElementById('reliabilityRate').innerText = '--%';
+        document.getElementById('failuresWrapper').innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted);">Sem partidas em ${versaoAtiva}</p>`;
+        return;
+      }
 
       let labels = []; let totals = []; let autos = []; let teles = []; let efficiencySum = 0; let cleanMatches = 0; let count = 0; let foulsTotal = 0;
       let problemasCount = {};
-      let sumDetails = {
-        autoLeave: 0, autoClass: 0, autoOver: 0, autoPat: 0,
-        teleClass: 0, teleOver: 0, teleDepot: 0, telePat: 0, teleBase: 0, teleDouble: 0
-      };
+      let sumDetails = { autoLeave: 0, autoClass: 0, autoOver: 0, autoPat: 0, teleClass: 0, teleOver: 0, teleDepot: 0, telePat: 0, teleBase: 0, teleDouble: 0 };
 
-      matchesData.forEach((d, index) => {
-        labels.push(`Partida ${index + 1}`);
-        totals.push(d.total || 0); autos.push(d.auto || 0); teles.push(d.tele || 0);
-        
+      // Como o onSnapshot traz desc, vamos reverter para os gráficos ficarem do mais antigo pro mais novo
+      const sortedMatches = [...matchesData].reverse();
+
+      sortedMatches.forEach((d, index) => {
+        labels.push(`P${index + 1}`); totals.push(d.total || 0); autos.push(d.auto || 0); teles.push(d.tele || 0);
         if(d.target && d.target > 0) efficiencySum += ((d.total || 0) / d.target) * 100;
         if(d.problemas && d.problemas.includes('Partida Limpa')) cleanMatches++;
         if(d.fouls) foulsTotal += d.fouls;
@@ -1490,11 +1347,7 @@
           d.problemas.split(', ').forEach(p => { problemasCount[p] = (problemasCount[p] || 0) + 1; });
         }
 
-        if(d.details) {
-          for(let key in sumDetails) {
-            sumDetails[key] += (d.details[key] || 0);
-          }
-        }
+        if(d.details) { for(let key in sumDetails) { sumDetails[key] += (d.details[key] || 0); } }
         count++;
       });
 
@@ -1510,39 +1363,25 @@
       document.getElementById('consistencyCV').innerText = cv.toFixed(1) + '%';
       document.getElementById('reliabilityRate').innerText = reliability + '%';
 
-      const movingAvg = [];
-      const windowSize = 3;
+      const movingAvg = []; const windowSize = 3;
       for (let i = 0; i < totals.length; i++) {
         if (i < windowSize - 1) movingAvg.push(null);
-        else {
-          const sum = totals.slice(i - windowSize + 1, i + 1).reduce((a,b) => a + b, 0);
-          movingAvg.push(sum / windowSize);
-        }
+        else { const sum = totals.slice(i - windowSize + 1, i + 1).reduce((a,b) => a + b, 0); movingAvg.push(sum / windowSize); }
       }
       chartsInstances.history = new Chart(document.getElementById('scoreHistoryChart'), {
-        type: 'line',
-        data: { 
-          labels: labels, 
-          datasets: [
-            { label: 'Pts Totais', data: totals, borderColor: orange, backgroundColor: bgOrange, fill: true, tension: 0.3, borderWidth: 3, pointRadius: 4, pointBackgroundColor: orange },
-            { label: 'Média Móvel (3)', data: movingAvg, borderColor: blue, borderDash: [5,5], pointRadius: 0, fill: false, borderWidth: 2 }
-          ] 
-        },
+        type: 'line', data: { labels: labels, datasets: [ { label: 'Pts Totais', data: totals, borderColor: orange, backgroundColor: bgOrange, fill: true, tension: 0.3, borderWidth: 3, pointRadius: 4, pointBackgroundColor: orange }, { label: 'Média Móvel (3)', data: movingAvg, borderColor: blue, borderDash: [5,5], pointRadius: 0, fill: false, borderWidth: 2 } ] },
         options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } }, scales: { y: { grid: {color: gridColor}, ticks: { color: textColor } }, x: { grid: {display:false}, ticks: { color: textColor } } } }
       });
 
-      const avgAuto = autos.reduce((a,b)=>a+b, 0)/count;
-      const avgTele = teles.reduce((a,b)=>a+b, 0)/count;
+      const avgAuto = autos.reduce((a,b)=>a+b, 0)/count; const avgTele = teles.reduce((a,b)=>a+b, 0)/count;
       chartsInstances.avg = new Chart(document.getElementById('avgDistributionChart'), {
-        type: 'bar',
-        data: { labels: ['Autônomo', 'Tele-Op'], datasets: [{ label: 'Pontuação Média', data: [avgAuto, avgTele], backgroundColor: [blue, green], borderRadius: 6 }] },
+        type: 'bar', data: { labels: ['Autônomo', 'Tele-Op'], datasets: [{ label: 'Pontuação Média', data: [avgAuto, avgTele], backgroundColor: [blue, green], borderRadius: 6 }] },
         options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } }, scales: { y: { grid: {color: gridColor}, ticks: { color: textColor } }, x: { grid: {display: false}, ticks: { color: textColor } } } }
       });
 
       const finalEff = Math.round(efficiencySum / count);
       chartsInstances.eff = new Chart(document.getElementById('efficiencyGaugeChart'), {
-        type: 'doughnut',
-        data: { labels: ['Eficiência Média', 'Perda'], datasets: [{ data: [finalEff, 100 - finalEff > 0 ? 100 - finalEff : 0], backgroundColor: [orange, isDark ? '#242424' : '#e5e7eb'], borderWidth: 0 }] },
+        type: 'doughnut', data: { labels: ['Eficiência Média', 'Perda'], datasets: [{ data: [finalEff, 100 - finalEff > 0 ? 100 - finalEff : 0], backgroundColor: [orange, isDark ? '#242424' : '#e5e7eb'], borderWidth: 0 }] },
         options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { labels: { color: textColor } } } }
       });
 
@@ -1551,85 +1390,37 @@
         failuresWrapper.innerHTML = `<div style="text-align:center; color:${green}; display:flex; flex-direction:column; align-items:center;"><i class="fas fa-check-circle" style="font-size:40px; margin-bottom:10px;"></i><span style="font-weight:700;">Tudo Limpo!</span><span style="font-size:12px; color:var(--text-muted);">Nenhum problema registado.</span><canvas id="failuresChart" style="display:none;"></canvas></div>`;
       } else {
         if(!document.getElementById('failuresChart')) failuresWrapper.innerHTML = '<canvas id="failuresChart"></canvas>';
-        chartsInstances.failures = new Chart(document.getElementById('failuresChart'), {
-          type: 'pie',
-          data: {
-            labels: Object.keys(problemasCount),
-            datasets: [{
-              data: Object.values(problemasCount),
-              backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#64748b'],
-              borderWidth: 2, borderColor: isDark ? '#121212' : '#fff'
-            }]
-          },
-          options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } } }
-        });
+        chartsInstances.failures = new Chart(document.getElementById('failuresChart'), { type: 'pie', data: { labels: Object.keys(problemasCount), datasets: [{ data: Object.values(problemasCount), backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#64748b'], borderWidth: 2, borderColor: isDark ? '#121212' : '#fff' }] }, options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } } } });
       }
 
-      const maxAuto = Math.max(...autos, 1);
-      const maxTele = Math.max(...teles, 1);
-      const normAuto = (avgAuto / maxAuto) * 100;
-      const normTele = (avgTele / maxTele) * 100;
+      const maxAuto = Math.max(...autos, 1); const maxTele = Math.max(...teles, 1);
+      const normAuto = (avgAuto / maxAuto) * 100; const normTele = (avgTele / maxTele) * 100;
       const foulPenaltyImpact = Math.max(0, 100 - (foulsTotal / count)); 
       chartsInstances.radar = new Chart(document.getElementById('robotProfileRadarChart'), {
-        type: 'radar',
-        data: {
-          labels: ['Força Auto', 'Força Tele', 'Eficiência', 'Fiabilidade', 'Disciplina'],
-          datasets: [{
-            data: [normAuto, normTele, finalEff, reliability, foulPenaltyImpact],
-            backgroundColor: bgOrange, borderColor: orange, pointBackgroundColor: orange,
-          }]
-        },
+        type: 'radar', data: { labels: ['Força Auto', 'Força Tele', 'Eficiência', 'Fiabilidade', 'Disciplina'], datasets: [{ data: [normAuto, normTele, finalEff, reliability, foulPenaltyImpact], backgroundColor: bgOrange, borderColor: orange, pointBackgroundColor: orange, }] },
         options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } }, scales: { r: { angleLines: { color: gridColor }, grid: { color: gridColor }, pointLabels: { color: textColor }, ticks: { display: false, min: 0, max: 100 } } } }
       });
 
-      const scatterData = matchesData.map(m => ({ x: m.auto || 0, y: m.total || 0 }));
+      const scatterData = sortedMatches.map(m => ({ x: m.auto || 0, y: m.total || 0 }));
       chartsInstances.scatter = new Chart(document.getElementById('scatterAutoTotalChart'), {
-        type: 'scatter',
-        data: { datasets: [{ label: 'Partidas', data: scatterData, backgroundColor: orange, pointRadius: 6 }] },
-        options: {
-          maintainAspectRatio: false,
-          scales: {
-            x: { title: { display: true, text: 'Pontos Autônomo', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } },
-            y: { title: { display: true, text: 'Pontos Totais', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } }
-          },
-          plugins: { legend: { labels: { color: textColor } } }
-        }
+        type: 'scatter', data: { datasets: [{ label: 'Partidas', data: scatterData, backgroundColor: orange, pointRadius: 6 }] },
+        options: { maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Pontos Autônomo', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } }, y: { title: { display: true, text: 'Pontos Totais', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } } }, plugins: { legend: { labels: { color: textColor } } } }
       });
 
       const contribLabels = ['Leave Auto', 'Classified Auto', 'Overflow Auto', 'Pattern Auto', 'Classified Tele', 'Overflow Tele', 'Depot Tele', 'Pattern Tele', 'Base', 'Double Base'];
-      const contribData = [
-        sumDetails.autoLeave / count,
-        sumDetails.autoClass / count,
-        sumDetails.autoOver / count,
-        sumDetails.autoPat / count,
-        sumDetails.teleClass / count,
-        sumDetails.teleOver / count,
-        sumDetails.teleDepot / count,
-        sumDetails.telePat / count,
-        sumDetails.teleBase / count,
-        sumDetails.teleDouble / count
-      ];
-      const filteredLabels = contribLabels.filter((_, i) => contribData[i] > 0);
-      const filteredData = contribData.filter(v => v > 0);
+      const contribData = [ sumDetails.autoLeave / count, sumDetails.autoClass / count, sumDetails.autoOver / count, sumDetails.autoPat / count, sumDetails.teleClass / count, sumDetails.teleOver / count, sumDetails.teleDepot / count, sumDetails.telePat / count, sumDetails.teleBase / count, sumDetails.teleDouble / count ];
+      const filteredLabels = contribLabels.filter((_, i) => contribData[i] > 0); const filteredData = contribData.filter(v => v > 0);
       
       chartsInstances.contribution = new Chart(document.getElementById('contributionPieChart'), {
-        type: 'pie',
-        data: {
-          labels: filteredLabels.length ? filteredLabels : ['Sem dados'],
-          datasets: [{
-            data: filteredData.length ? filteredData : [1],
-            backgroundColor: ['#FF5E00','#F59E0B','#3B82F6','#10B981','#8B5CF6','#EC4899','#14B8A6','#F97316','#6366F1','#A855F7']
-          }]
-        },
+        type: 'pie', data: { labels: filteredLabels.length ? filteredLabels : ['Sem dados'], datasets: [{ data: filteredData.length ? filteredData : [1], backgroundColor: ['#FF5E00','#F59E0B','#3B82F6','#10B981','#8B5CF6','#EC4899','#14B8A6','#F97316','#6366F1','#A855F7'] }] },
         options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor } } } }
       });
     };
 
     document.getElementById('btnRefreshCharts').addEventListener('click', refreshCharts);
 
-    // Inicializar
+    // Inicializar (o resto é acionado pelo onSnapshot inicial)
     calcMatchScore();
-    updateMatchDropdown();
     switchTab('match');
   </script>
 </body>
