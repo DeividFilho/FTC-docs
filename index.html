@@ -40,7 +40,7 @@
       --shadow-glow: 0 0 15px var(--orange-glow);
       --shadow-float: 0 15px 30px -5px rgba(0,0,0,0.2);
       --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      --brand-red: #dc2626;    
+      --brand-red: #dc2626;   
       --brand-tele: #16a34a;   
       --brand-warn: #f59e0b;
       --brand-blue: #3b82f6;
@@ -270,6 +270,7 @@
       <button class="nav-tab" data-target-tab="compare">Compare</button>
       <button class="nav-tab" data-target-tab="charts">Analytics</button>
       <button class="nav-tab" data-target-tab="help">Ajuda</button>
+      <button class="nav-tab" data-target-tab="global-eng">Global Logs</button>
     </div>
 
     <button class="theme-btn" id="themeToggle">
@@ -471,9 +472,19 @@
       </div>
 
       <div id="engFeed" class="timeline">
-        </div>
+      </div>
     </section>
 
+    <section id="sec-global-eng" class="section">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title"><i class="fas fa-globe"></i> Histórico Global de Engenharia</span>
+          <span style="font-size:12px; color: var(--text-muted);">Todos os commits de todas as versões</span>
+        </div>
+        <div id="globalEngFeed" class="timeline">
+          </div>
+      </div>
+    </section>
     <section id="sec-robot" class="section">
       <div class="panel">
         <div class="panel-header">
@@ -718,7 +729,7 @@
             <h3>Criar Novas Versões</h3>
             <p>Acesse a aba <strong>Blueprint</strong> para criar uma nova versão.</p>
             <ul>
-              <li><i class="fas fa-check-circle"></i> Digite um nome (ex: Titan) e uma versão (ex: v2.0).</li>
+              <li><i class="fas fa-check-circle"></i> Digite um nome (ex: METALINA) e uma versão (ex: v2.0).</li>
               <li><i class="fas fa-check-circle"></i> Preencha o hardware atual.</li>
               <li><i class="fas fa-check-circle"></i> Ao clicar em Gravar, a nova versão aparecerá no Seletor Global e estará pronta para receber partidas limpas.</li>
             </ul>
@@ -732,9 +743,8 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script type="module">
-    // ========== JAVASCRIPT ATUALIZADO (HIERÁRQUICO) ==========
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, setDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, setDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB6ynxAi14VHRWTro2Rm3VQAQS9rn2CtmE",
@@ -761,7 +771,6 @@
     let robotVersionsArray = [];
     let formEngOpen = false;
 
-    // Listeners que podem ser desmontados quando a versão muda
     let unsubscribePartidas = null;
     let unsubscribeEngenharia = null;
 
@@ -807,6 +816,8 @@
           setTimeout(refreshCharts, 100); 
       } else if (tabId === 'compare') {
           renderCompare();
+      } else if (tabId === 'global-eng') {
+          renderGlobalEngFeed(); 
       }
     };
 
@@ -814,7 +825,6 @@
       btn.addEventListener('click', (e) => switchTab(e.target.getAttribute('data-target-tab')));
     });
 
-    // UI Updates
     const updateMatchDropdown = () => {
       const select = document.getElementById('matchMec');
       select.innerHTML = `<option value="${versaoAtiva}">${versaoAtiva}</option>`;
@@ -839,9 +849,6 @@
       if(valB) compB.value = valB;
     };
 
-    // --- NOVA LÓGICA HIERÁRQUICA DO FIREBASE ---
-
-    // 1. Escutar todas as Versões criadas para preencher o Menu Global e o Compare
     onSnapshot(collection(db, "robos", ROBO_ATIVO, "versoes"), (snapshot) => {
       const select = document.getElementById('globalVersionSelect');
       const currentVal = select.value;
@@ -880,7 +887,6 @@
       iniciarEscutasDaVersao(); 
     });
 
-    // 2. Evento de troca de Versão Global
     document.getElementById('globalVersionSelect').addEventListener('change', (e) => {
         versaoAtiva = e.target.value;
         showToast(`Contexto alterado: visualizando ${versaoAtiva}`, 'success');
@@ -888,13 +894,10 @@
         iniciarEscutasDaVersao();
     });
 
-    // 3. Função Central para buscar Partidas e Engenharia APENAS da versão selecionada
     function iniciarEscutasDaVersao() {
-      // Limpa escutas anteriores para não misturar dados
       if(unsubscribePartidas) unsubscribePartidas();
       if(unsubscribeEngenharia) unsubscribeEngenharia();
 
-      // Escutar Partidas
       const pathPartidas = collection(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "partidas");
       const qMatches = query(pathPartidas, orderBy("timestamp", "desc"), limit(50));
       
@@ -905,7 +908,6 @@
         if(document.getElementById('sec-charts').classList.contains('active')) refreshCharts();
       });
 
-      // Escutar Engenharia
       const pathEng = collection(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "engenharia");
       unsubscribeEngenharia = onSnapshot(query(pathEng, orderBy("timestamp", "desc")), (snap) => {
         engLogsData = [];
@@ -914,7 +916,6 @@
       });
     }
 
-    // Match Tracker - Cálculo
     const calcMatchScore = () => {
       const getM = id => parseInt(document.getElementById(id).value) || 0;
       const auto = getM('autoLeave') + (getM('autoClass') * 3) + (getM('autoOver') * 1) + (getM('autoPat') * 2);
@@ -992,7 +993,6 @@
       });
     });
 
-    // Salvar Partida HIERÁRQUICA
     document.getElementById('btnSaveMatch').addEventListener('click', async () => {
       if(!versaoAtiva) { showToast('Sem versão ativa configurada!', 'error'); return; }
 
@@ -1072,7 +1072,6 @@
       } catch(e) { console.error(e); showToast('Erro ao excluir.', 'error'); }
     };
 
-    // DevOps Log
     const toggleEngForm = () => { 
       formEngOpen = !formEngOpen; 
       document.getElementById('formEngenharia').style.display = formEngOpen ? 'block' : 'none'; 
@@ -1183,7 +1182,6 @@
       feed.innerHTML = html;
     }
 
-    // Blueprints e BOM
     const calcTotalCost = () => {
       const drv = parseFloat(document.getElementById('bp-drv-cost').value) || 0;
       const sen = parseFloat(document.getElementById('bp-sen-cost').value) || 0;
@@ -1194,25 +1192,6 @@
 
     document.querySelectorAll('.bp-cost-input').forEach(input => input.addEventListener('input', calcTotalCost));
     document.getElementById('btnSize').addEventListener('click', function() { this.classList.toggle('active-orange'); });
-
-    document.getElementById('btnAutoFillBlueprint').addEventListener('click', () => {
-      if(!engLogsData || engLogsData.length === 0) { showToast('Não há peças registadas na versão atual!', 'error'); return; }
-      
-      let latest = { 'DRV': {v:'', c:''}, 'SEN': {v:'', c:''}, 'MEC_INT': {v:'', c:''}, 'MEC_ELE': {v:'', c:''}, 'SW': {v:'', c:''} };
-      for (let log of engLogsData) {
-        let sys = log.ticket ? log.ticket.split('-')[0] : (log.sys || '');
-        if (sys === 'MEC') sys = 'MEC_INT'; 
-        if (latest[sys] !== undefined && latest[sys].v === '') { latest[sys].v = log.versao || ''; latest[sys].c = log.custo || ''; }
-      }
-
-      const setVal = (id, val) => { const el = document.getElementById(id); if(el && val && el.value === '') el.value = val; };
-      setVal('bp-drv', latest['DRV'].v); setVal('bp-drv-cost', latest['DRV'].c);
-      setVal('bp-sen', latest['SEN'].v); setVal('bp-sen-cost', latest['SEN'].c);
-      setVal('bp-mec1', latest['MEC_INT'].v); setVal('bp-mec1-cost', latest['MEC_INT'].c);
-      setVal('bp-mec2', latest['MEC_ELE'].v); setVal('bp-mec2-cost', latest['MEC_ELE'].c);
-      setVal('bp-sw', latest['SW'].v);
-      calcTotalCost(); showToast('Hardware puxado da Branch!', 'success');
-    });
 
     document.getElementById('btnSaveBlueprint').addEventListener('click', async () => {
       const nome = document.getElementById('robotName').value.trim();
@@ -1233,7 +1212,7 @@
 
       try {
         const versaoRef = doc(db, "robos", ROBO_ATIVO, "versoes", global);
-        await setDoc(versaoRef, blueprintData); // Cria o Nó da nova versão
+        await setDoc(versaoRef, blueprintData); 
         
         showToast('Nova versão criada e ativada!', 'success');
         btn.innerHTML = '<i class="fas fa-check"></i> Criado!'; btn.classList.remove('loading'); btn.classList.add('success');
@@ -1245,7 +1224,6 @@
       }
     });
 
-    // Compare
     const renderCompare = () => {
       const valA = document.getElementById('compA').value; const valB = document.getElementById('compB').value;
       const res = document.getElementById('compareResults');
@@ -1285,7 +1263,6 @@
     document.getElementById('compA').addEventListener('change', renderCompare);
     document.getElementById('compB').addEventListener('change', renderCompare);
 
-    // Tabela de Partidas
     function renderMatchesTable() {
       const tbody = document.getElementById('matchesTableBody');
       if (!tbody) return;
@@ -1303,7 +1280,6 @@
       tbody.innerHTML = html;
     }
 
-    // Gráficos (Baseados Apenas na Versão Ativa)
     const refreshCharts = () => {
       const isDark = document.body.classList.contains('dark-theme');
       const textColor = isDark ? '#ffffff' : '#111827'; const gridColor = isDark ? '#333333' : '#e5e7eb';
@@ -1323,7 +1299,6 @@
       });
 
       if(matchesData.length === 0) {
-        // Reset dos HUDs e Gráficos de Partidas se a versão estiver vazia
         document.getElementById('avgTotal').innerText = '0'; document.getElementById('bestMatch').innerText = '0';
         document.getElementById('consistencyCV').innerText = '--%'; document.getElementById('reliabilityRate').innerText = '--%';
         document.getElementById('failuresWrapper').innerHTML = `<p style="text-align:center; padding:30px; color:var(--text-muted);">Sem partidas em ${versaoAtiva}</p>`;
@@ -1334,7 +1309,6 @@
       let problemasCount = {};
       let sumDetails = { autoLeave: 0, autoClass: 0, autoOver: 0, autoPat: 0, teleClass: 0, teleOver: 0, teleDepot: 0, telePat: 0, teleBase: 0, teleDouble: 0 };
 
-      // Como o onSnapshot traz desc, vamos reverter para os gráficos ficarem do mais antigo pro mais novo
       const sortedMatches = [...matchesData].reverse();
 
       sortedMatches.forEach((d, index) => {
@@ -1418,6 +1392,118 @@
     };
 
     document.getElementById('btnRefreshCharts').addEventListener('click', refreshCharts);
+
+    // --- LÓGICA: FEED GLOBAL DE ENGENHARIA ---
+    const renderGlobalEngFeed = async () => {
+      const feed = document.getElementById('globalEngFeed');
+      feed.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x" style="color: var(--orange);"></i><p style="margin-top: 10px; color: var(--text-muted);">A carregar histórico global...</p></div>';
+
+      let globalLogs = [];
+      try {
+        for (let v of robotVersionsArray) {
+          const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
+          snap.forEach(d => globalLogs.push({...d.data(), versaoOrigem: v}));
+        }
+        
+        globalLogs.sort((a,b) => b.timestamp - a.timestamp);
+
+        if (globalLogs.length === 0) {
+          feed.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 40px;">Nenhum log encontrado na base de dados global.</p>';
+          return;
+        }
+
+        let html = '';
+        globalLogs.forEach((e) => {
+          const safeStatus = e.status || 'Documentado'; 
+          const safeTicket = e.ticket || 'SYS-000'; 
+          const safeDataStr = e.dataStr || 'Data Desconhecida';
+          
+          let badgeClass = 'status-failed'; let borderColor = 'var(--text-muted)';
+          if(safeStatus.includes('Prototipagem')) { badgeClass = 'status-testing'; borderColor = 'var(--brand-warn)'; }
+          else if(safeStatus.includes('Validado') || safeStatus.includes('Deployed')) { badgeClass = 'status-deployed'; borderColor = 'var(--brand-tele)'; }
+
+          html += `<div class="ticket-entry" style="border-left-color: ${borderColor}">
+            <div class="ticket-header">
+              <div>
+                <span class="ticket-id"><i class="fas fa-globe"></i> ${e.versaoOrigem}</span>
+                <span style="font-family: 'JetBrains Mono'; font-weight:700; font-size:12px; margin-left: 10px; color: var(--orange);">${safeTicket} (${e.versao || 'v?'})</span>
+                <h3 class="ticket-title">${e.titulo || 'Sem Título'}</h3>
+                <div class="ticket-meta">
+                  <span class="${badgeClass}" style="padding: 2px 6px; border-radius: 4px;">${safeStatus}</span>
+                  <i class="far fa-clock" style="margin-left: 10px;"></i> ${safeDataStr}
+                </div>
+              </div>
+            </div>
+            <div class="data-grid">
+              ${e.hipotese ? `<div class="data-block full"><h4><i class="fas fa-flask"></i> Hipótese</h4><p>${e.hipotese}</p></div>` : ''}
+              ${e.rca ? `<div class="data-block full"><h4><i class="fas fa-search-plus"></i> RCA / Resultados</h4><p>${e.rca}</p></div>` : ''}
+            </div>
+          </div>`;
+        });
+        feed.innerHTML = html;
+      } catch (error) {
+        console.error(error);
+        feed.innerHTML = '<p style="text-align:center; color:var(--brand-red);">Erro ao carregar logs globais.</p>';
+      }
+    };
+
+    // --- LÓGICA NOVA: AUTOFILL BLUEPRINT APENAS "DEPLOYED" ---
+    const btnAutoFill = document.getElementById('btnAutoFillBlueprint');
+    const novoBtnAutoFill = btnAutoFill.cloneNode(true);
+    btnAutoFill.parentNode.replaceChild(novoBtnAutoFill, btnAutoFill);
+
+    novoBtnAutoFill.addEventListener('click', async () => {
+      const btn = novoBtnAutoFill;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A buscar Deployed...';
+      
+      try {
+        let globalLogs = [];
+        for (let v of robotVersionsArray) {
+            const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
+            snap.forEach(d => globalLogs.push({...d.data()}));
+        }
+        
+        globalLogs.sort((a,b) => b.timestamp - a.timestamp);
+
+        let latest = { 'DRV': {v:'', c:''}, 'SEN': {v:'', c:''}, 'MEC_INT': {v:'', c:''}, 'MEC_ELE': {v:'', c:''}, 'SW': {v:'', c:''} };
+        
+        let foundDeployed = false;
+        for (let log of globalLogs) {
+          if (log.status !== 'Deployed (Competição)') continue;
+          
+          foundDeployed = true;
+          let sys = log.ticket ? log.ticket.split('-')[0] : (log.sys || '');
+          if (sys === 'MEC') sys = 'MEC_INT'; 
+          
+          if (latest[sys] !== undefined && latest[sys].v === '') { 
+            latest[sys].v = log.versao || ''; 
+            latest[sys].c = log.custo || ''; 
+          }
+        }
+
+        if (!foundDeployed) {
+            showToast('Nenhum subsistema "Deployed" encontrado na Nuvem.', 'warning');
+            btn.innerHTML = originalText;
+            return;
+        }
+
+        const setVal = (id, val) => { const el = document.getElementById(id); if(el && val && el.value === '') el.value = val; };
+        setVal('bp-drv', latest['DRV'].v); setVal('bp-drv-cost', latest['DRV'].c);
+        setVal('bp-sen', latest['SEN'].v); setVal('bp-sen-cost', latest['SEN'].c);
+        setVal('bp-mec1', latest['MEC_INT'].v); setVal('bp-mec1-cost', latest['MEC_INT'].c);
+        setVal('bp-mec2', latest['MEC_ELE'].v); setVal('bp-mec2-cost', latest['MEC_ELE'].c);
+        setVal('bp-sw', latest['SW'].v);
+        
+        calcTotalCost(); 
+        showToast('Apenas módulos DEPLOYED importados!', 'success');
+      } catch(e) {
+        console.error(e);
+        showToast('Erro ao puxar dados da nuvem.', 'error');
+      } finally {
+        btn.innerHTML = originalText;
+      }
+    });
 
     // Inicializar (o resto é acionado pelo onSnapshot inicial)
     calcMatchScore();
