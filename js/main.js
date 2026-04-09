@@ -498,46 +498,208 @@ async function loadBlueprintOptions() {
   } catch(err) { console.error(err); showToast('Erro ao carregar peças.', 'error'); } 
 }
 
-const renderCompare = () => {
-  const valA = document.getElementById('compA').value; const valB = document.getElementById('compB').value;
+const renderCompare = async () => {
+  const valA = document.getElementById('compA').value; 
+  const valB = document.getElementById('compB').value;
   const res = document.getElementById('compareResults');
-  if(!valA || !valB) { res.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução do robô.</p>'; return; }
+  
+  if(!valA || !valB) { 
+    res.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução mecânica e de desempenho.</p>'; 
+    return; 
+  }
 
-  const bpA = blueprintsData.find(b => b.id === valA); const bpB = blueprintsData.find(b => b.id === valB);
+  const bpA = blueprintsData.find(b => b.id === valA); 
+  const bpB = blueprintsData.find(b => b.id === valB);
   if(!bpA || !bpB) return;
 
-  const compareRow = (label, key, isNumeric = false, invertLogic = false) => {
-    let valDataA = bpA[key]; let valDataB = bpB[key];
-    if (typeof valDataA === 'boolean') valDataA = valDataA ? 'Sim' : 'Não';
-    if (typeof valDataB === 'boolean') valDataB = valDataB ? 'Sim' : 'Não';
-    let a = valDataA || '-'; let b = valDataB || '-';
-    let classA = ''; let classB = '';
+  res.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x" style="color: var(--orange);"></i><p style="margin-top:10px; color:var(--text-muted)">A cruzar dados de engenharia e telemetria...</p></div>';
 
-    if(a !== b) {
-        classA = 'comp-diff'; classB = 'comp-diff';
-        if(isNumeric) {
-            let numA = parseFloat(a) || 0; let numB = parseFloat(b) || 0;
-            if(numA < numB) { 
-              classA = invertLogic ? 'comp-better' : 'comp-worse'; 
-              classB = invertLogic ? 'comp-worse' : 'comp-better'; 
-            }
-            else if (numB < numA) { 
-              classB = invertLogic ? 'comp-better' : 'comp-worse'; 
-              classA = invertLogic ? 'comp-worse' : 'comp-better'; 
-            }
+  try {
+    // 1. Busca as partidas das DUAS versões em paralelo (Super rápido)
+    const [snapA, snapB] = await Promise.all([
+      getDocs(query(collection(db, "robos", ROBO_ATIVO, "versoes", valA, "partidas"))),
+      getDocs(query(collection(db, "robos", ROBO_ATIVO, "versoes", valB, "partidas")))
+    ]);
+
+    // 2. Motor de Estatísticas Avançadas
+    const calcStats = (snapshot, costTotal) => {
+      let totals = []; let autoPts = 0; let cleanCount = 0;
+      snapshot.forEach(doc => {
+        let d = doc.data();
+        if(!d.apagado) {
+          totals.push(d.total || 0); autoPts += (d.auto || 0);
+          if(d.problemas && d.problemas.includes('Partida Limpa')) cleanCount++;
         }
-    }
-    return `<tr><th>${label}</th><td class="${classA}">${isNumeric && a !== '-' && key === 'custoTotal' ? 'R$ '+a : a}</td><td class="${classB}">${isNumeric && b !== '-' && key === 'custoTotal' ? 'R$ '+b : b}</td></tr>`;
-  };
+      });
+      let count = totals.length;
+      let totalSum = totals.reduce((a,b) => a+b, 0);
+      let mediaTotal = count > 0 ? Math.round(totalSum / count) : 0;
+      
+      // Calcula Consistência (Coeficiente de Variação - CV%)
+      let cv = 0;
+      if (count > 1 && mediaTotal > 0) {
+          let variance = totals.reduce((a,b) => a + Math.pow(b - mediaTotal, 2), 0) / count;
+          cv = Math.round((Math.sqrt(variance) / mediaTotal) * 100);
+      }
 
-  res.innerHTML = `<table class="comp-table"><thead><tr><th>Atributo</th><th>${bpA.id}</th><th>${bpB.id}</th></tr></thead><tbody>
-        ${compareRow('Chassi (DRV)', 'drv')} ${compareRow('Sensores (SEN)', 'sen')}
-        ${compareRow('Intake (MEC1)', 'mec1')} ${compareRow('Elevador (MEC2)', 'mec2')}
-        ${compareRow('Software (SW)', 'sw')} 
-        ${compareRow('Peso (kg)', 'peso', true, true)}
-        ${compareRow('Custo Total', 'custoTotal', true, true)}
-        ${compareRow('Sizing (18x18)', 'sizingAprovado')}
-      </tbody></table>`;
+      return {
+        partidas: count,
+        mediaTotal: mediaTotal,
+        mediaAuto: count > 0 ? Math.round(autoPts / count) : 0,
+        fiabilidade: count > 0 ? Math.round((cleanCount / count) * 100) : 0,
+        consistencia: cv,
+        custoPonto: mediaTotal > 0 ? (costTotal / mediaTotal).toFixed(2) : 0
+      };
+    };
+
+    const costA = parseFloat(bpA.custoTotal) || 0;
+    const costB = parseFloat(bpB.custoTotal) || 0;
+    
+    const statsA = calcStats(snapA, costA);
+    const statsB = calcStats(snapB, costB);
+
+    // 3. IA de Veredito (Lógica de Decisão)
+    let vereditoHTML = "";
+    if (statsA.partidas === 0 || statsB.partidas === 0) {
+      vereditoHTML = `<div style="color: var(--brand-warn);"><i class="fas fa-exclamation-triangle"></i> Dados insuficientes. É necessário jogar com ambas as versões para gerar o veredito.</div>`;
+    } else {
+      let diffPts = statsB.mediaTotal - statsA.mediaTotal;
+      let isB_Better = diffPts >= 0;
+      let custoDiff = costB - costA;
+      
+      vereditoHTML = `<div style="font-size: 15px; font-weight: 700; color: ${isB_Better ? 'var(--brand-tele)' : 'var(--brand-red)'}">
+        ${isB_Better 
+          ? `<i class="fas fa-trophy"></i> A versão ${bpB.id} provou ser superior!` 
+          : `<i class="fas fa-times-circle"></i> A versão ${bpA.id} (Antiga) ainda tem melhor desempenho.`}
+      </div>
+      <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">
+        A ${bpB.id} garante <strong>${diffPts >= 0 ? '+'+diffPts : diffPts} pontos</strong> em média. 
+        ${custoDiff > 0 ? `Apesar de ser R$ ${custoDiff.toFixed(2)} mais cara, ` : custoDiff < 0 ? `E além disso é R$ ${Math.abs(custoDiff).toFixed(2)} mais barata, ` : 'O custo manteve-se, mas '}
+        a sua taxa de fiabilidade é de <strong>${statsB.fiabilidade}%</strong> (vs ${statsA.fiabilidade}% da anterior).
+      </div>`;
+    }
+
+    // Função de formatação para as linhas da tabela
+    const compareRow = (label, valDataA, valDataB, isNumeric = false, invertLogic = false, suffix = '') => {
+      let a = valDataA; let b = valDataB;
+      if (typeof a === 'boolean') a = a ? 'Sim' : 'Não';
+      if (typeof b === 'boolean') b = b ? 'Sim' : 'Não';
+      if (a === undefined || a === '') a = '-'; if (b === undefined || b === '') b = '-';
+      
+      let classA = ''; let classB = '';
+      if(a !== b && a !== '-' && b !== '-') {
+          classA = 'comp-diff'; classB = 'comp-diff';
+          if(isNumeric) {
+              let numA = parseFloat(a) || 0; let numB = parseFloat(b) || 0;
+              if(numA < numB) { classA = invertLogic ? 'comp-better' : 'comp-worse'; classB = invertLogic ? 'comp-worse' : 'comp-better'; } 
+              else if (numB < numA) { classB = invertLogic ? 'comp-better' : 'comp-worse'; classA = invertLogic ? 'comp-worse' : 'comp-better'; }
+          }
+      }
+      return `<tr><th>${label}</th><td class="${classA}">${a !== '-' ? a + suffix : a}</td><td class="${classB}">${b !== '-' ? b + suffix : b}</td></tr>`;
+    };
+
+    // 4. Constrói a UI Avançada (Veredito + Gráfico + Tabela)
+    res.innerHTML = `
+      <div style="background: var(--bg-input); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 24px; text-align: center; box-shadow: var(--shadow-sm);">
+        <h4 style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px;"><i class="fas fa-brain"></i> Análise de Decisão do MetalLab</h4>
+        ${vereditoHTML}
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; margin-bottom: 24px;">
+        <div style="flex: 1; min-width: 300px; background: var(--bg-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-light); display: ${statsA.partidas > 0 && statsB.partidas > 0 ? 'block' : 'none'};">
+           <h4 style="text-align:center; font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom: 15px;">Duelo de Performance Visual</h4>
+           <div style="position: relative; height: 250px; width: 100%;">
+              <canvas id="compareRadarChart"></canvas>
+           </div>
+        </div>
+      </div>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th style="width: 34%;">Métrica / Subsistema</th>
+            <th style="width: 33%; font-size: 14px; color: var(--text-muted);"><i class="fas fa-history"></i> ${bpA.id}</th>
+            <th style="width: 33%; font-size: 14px; color: var(--orange);"><i class="fas fa-star"></i> ${bpB.id}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background: rgba(0,0,0,0.03);"><td colspan="3" style="text-align: left; font-size: 10px; color: var(--text-muted); font-weight: bold; letter-spacing: 1px;">📊 TELEMETRIA E PERFORMANCE</td></tr>
+          ${compareRow('Partidas de Teste Jogadas', statsA.partidas, statsB.partidas, true, false)}
+          ${compareRow('Média de Pontos Totais', statsA.mediaTotal, statsB.mediaTotal, true, false)}
+          ${compareRow('Média em Modo Autônomo', statsA.mediaAuto, statsB.mediaAuto, true, false)}
+          ${compareRow('Fiabilidade (Sem Falhas)', statsA.fiabilidade, statsB.fiabilidade, true, false, '%')}
+          ${compareRow('Inconsistência de Partida (Menor é Melhor)', statsA.consistencia, statsB.consistencia, true, true, '%')}
+          ${compareRow('Custo por Ponto Feito (ROI)', statsA.custoPonto, statsB.custoPonto, true, true, ' R$')}
+          
+          <tr style="background: rgba(0,0,0,0.03);"><td colspan="3" style="text-align: left; font-size: 10px; color: var(--text-muted); font-weight: bold; letter-spacing: 1px; margin-top: 10px;">⚙️ HARDWARE E BLUEPRINT</td></tr>
+          ${compareRow('Chassi (DRV)', bpA.drv, bpB.drv)} 
+          ${compareRow('Sensores (SEN)', bpA.sen, bpB.sen)}
+          ${compareRow('Intake (MEC1)', bpA.mec1, bpB.mec1)} 
+          ${compareRow('Elevador (MEC2)', bpA.mec2, bpB.mec2)}
+          ${compareRow('Software (SW)', bpA.sw, bpB.sw)} 
+          ${compareRow('Peso Total', bpA.peso, bpB.peso, true, true, ' kg')}
+          ${compareRow('Custo de Produção', bpA.custoTotal, bpB.custoTotal, true, true, ' R$')}
+          ${compareRow('Aprovado no Sizing', bpA.sizingAprovado, bpB.sizingAprovado)}
+        </tbody>
+      </table>
+    `;
+
+    // 5. Injeta o Gráfico de Radar Lado-a-Lado no Canvas que acabámos de criar
+    if (statsA.partidas > 0 && statsB.partidas > 0) {
+      setTimeout(() => {
+        const ctx = document.getElementById('compareRadarChart');
+        if(!ctx) return;
+        
+        // Destrói o gráfico anterior se existir
+        if(window.compareChartInstance) window.compareChartInstance.destroy();
+
+        // Normalização rápida para o gráfico de Radar (Tudo fica numa escala 0-100)
+        const maxPts = Math.max(statsA.mediaTotal, statsB.mediaTotal, 1);
+        const maxAuto = Math.max(statsA.mediaAuto, statsB.mediaAuto, 1);
+        
+        const dataA = [ (statsA.mediaTotal/maxPts)*100, (statsA.mediaAuto/maxAuto)*100, statsA.fiabilidade, 100 - statsA.consistencia ];
+        const dataB = [ (statsB.mediaTotal/maxPts)*100, (statsB.mediaAuto/maxAuto)*100, statsB.fiabilidade, 100 - statsB.consistencia ];
+
+        const isDark = document.body.classList.contains('dark-theme');
+        const textColor = isDark ? '#ffffff' : '#111827';
+        const gridColor = isDark ? '#333333' : '#e5e7eb';
+
+        window.compareChartInstance = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: ['Força Total', 'Eficácia Auto', 'Fiabilidade', 'Consistência'],
+            datasets: [
+              {
+                label: bpA.id,
+                data: dataA,
+                backgroundColor: 'rgba(107, 114, 128, 0.2)', // Cinzento
+                borderColor: '#6b7280',
+                borderWidth: 2,
+                pointBackgroundColor: '#6b7280'
+              },
+              {
+                label: bpB.id,
+                data: dataB,
+                backgroundColor: 'rgba(255, 94, 0, 0.4)', // Laranja MetalLab
+                borderColor: '#FF5E00',
+                borderWidth: 3,
+                pointBackgroundColor: '#FF5E00'
+              }
+            ]
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: textColor } } },
+            scales: { r: { angleLines: { color: gridColor }, grid: { color: gridColor }, pointLabels: { color: textColor, font: {size: 11} }, ticks: { display: false, min: 0, max: 100 } } }
+          }
+        });
+      }, 50); // Delay mínimo para garantir que o Canvas foi renderizado no HTML
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.innerHTML = '<p style="text-align:center; color:var(--brand-red);">Erro ao processar as métricas cruzadas. Verifique a conexão.</p>';
+  }
 };
 
 document.getElementById('compA').addEventListener('change', renderCompare);
