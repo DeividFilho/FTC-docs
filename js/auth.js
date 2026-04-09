@@ -1,7 +1,7 @@
 // js/auth.js
 import { auth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from './firebase.js';
 import { initDatabaseListeners, stopDatabaseListeners } from './main.js';
-import { showToast } from './ui.js';
+import { showToast, hideGlobalSpinner } from './ui.js'; // <-- Correção 1: Importando a função
 
 const loginScreen = document.getElementById('login-screen');
 const appContainer = document.getElementById('app-container');
@@ -34,6 +34,9 @@ export function initAuth() {
         showToast(`Sessão iniciada como ${user.email?.split('@')[0] || 'Operador'}`, 'success');
       }
     } else {
+      // <-- Correção 2: Esconde o spinner se o utilizador não estiver logado
+      hideGlobalSpinner(); 
+
       if(loginScreen) {
         loginScreen.classList.remove('hidden');
         loginScreen.style.display = 'flex'; 
