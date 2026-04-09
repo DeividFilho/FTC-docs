@@ -1,3 +1,4 @@
+// js/main.js
 import { db, ROBO_ATIVO, collection, addDoc, setDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit, getDocs } from './firebase.js';
 import { initAuth } from './auth.js';
 
@@ -11,7 +12,7 @@ let tagsProblemas = ['Partida Limpa'];
 let robotVersionsArray = [];
 let formEngOpen = false;
 let isViewingGlobalHistory = false;
-let dbInitialized = false; // Adicione esta variável
+let dbInitialized = false; 
 
 // Variáveis de Inscrição do Firebase
 let unsubscribePartidas = null;
@@ -33,7 +34,6 @@ export function showToast(message, type = 'success') {
 
 // --- INICIA A AUTENTICAÇÃO E LIGA COM O BANCO ---
 initAuth(
-  // O que fazer quando fizer login:
   (user) => {
     if(!dbInitialized) {
       initDatabaseListeners();
@@ -41,14 +41,12 @@ initAuth(
       showToast(`Sessão iniciada como ${user.email.split('@')[0]}`, 'success');
     }
   },
-  // O que fazer quando deslogar:
   () => {
     if(dbInitialized) {
       stopDatabaseListeners();
       dbInitialized = false;
     }
   },
-  // Passamos o Toast para o auth.js poder usar
   showToast
 );
 
@@ -77,6 +75,7 @@ const switchTab = (tabId) => {
       document.getElementById('btnSaveMatch').style.display = 'flex';
   } else if (tabId === 'robot') {
       document.getElementById('btnSaveBlueprint').style.display = 'flex';
+      loadBlueprintOptions(); // Carrega as opções automaticamente
   } else if (tabId === 'charts') {
       setTimeout(refreshCharts, 100); 
   } else if (tabId === 'compare') {
@@ -90,29 +89,28 @@ document.querySelectorAll('.nav-tab[data-target-tab]').forEach(btn => {
 
 const updateMatchDropdown = () => {
   const select = document.getElementById('matchMec');
-  select.innerHTML = `<option value="${versaoAtiva}">${versaoAtiva}</option>`;
-  select.value = versaoAtiva;
+  if(select) {
+    select.innerHTML = `<option value="${versaoAtiva}">${versaoAtiva}</option>`;
+    select.value = versaoAtiva;
+  }
 };
 
 const updateCompareDropdowns = () => {
   const compA = document.getElementById('compA');
   const compB = document.getElementById('compB');
+  if(!compA || !compB) return;
   const valA = compA.value;
   const valB = compB.value;
 
   let options = '<option value="">Selecione uma Versão...</option>';
-  blueprintsData.forEach(bp => {
-    options += `<option value="${bp.id}">${bp.id}</option>`;
-  });
+  blueprintsData.forEach(bp => { options += `<option value="${bp.id}">${bp.id}</option>`; });
 
-  compA.innerHTML = options;
-  compB.innerHTML = options;
-
+  compA.innerHTML = options; compB.innerHTML = options;
   if(valA) compA.value = valA;
   if(valB) compB.value = valB;
 };
 
-// --- CONTROLE DE BANCO DE DADOS (CHAMADO PELO AUTH.JS) ---
+// --- CONTROLE DE BANCO DE DADOS ---
 export function stopDatabaseListeners() {
     if(unsubscribeVersoes) unsubscribeVersoes();
     if(unsubscribePartidas) unsubscribePartidas();
@@ -217,8 +215,7 @@ document.querySelectorAll('.counter-btn').forEach(btn => {
     const input = document.getElementById(targetId);
     const display = document.getElementById('val-' + targetId);
     let val = parseInt(input.value) || 0; 
-    val += delta; 
-    if(val < 0) val = 0; 
+    val += delta; if(val < 0) val = 0; 
     input.value = val; display.innerText = val; 
     calcMatchScore();
   });
@@ -242,19 +239,14 @@ document.querySelectorAll('.tag-problem').forEach(btn => {
   btn.addEventListener('click', () => {
     const container = btn.parentElement;
     const isExclusive = btn.getAttribute('data-exclusive') === 'true';
-    
     if(isExclusive) { 
       container.querySelectorAll('.tag').forEach(b => b.classList.remove('active', 'active-orange')); 
-      btn.classList.add('active-orange'); 
-      tagsProblemas = [btn.innerText]; 
+      btn.classList.add('active-orange'); tagsProblemas = [btn.innerText]; 
       return; 
     }
-    
     const btnLimpa = container.querySelector('.active-orange');
     if(btnLimpa) { btnLimpa.classList.remove('active-orange'); tagsProblemas = []; }
-    
-    btn.classList.toggle('active'); 
-    const val = btn.innerText;
+    btn.classList.toggle('active'); const val = btn.innerText;
     if(btn.classList.contains('active')) { tagsProblemas.push(val); } 
     else { const idx = tagsProblemas.indexOf(val); if(idx > -1) tagsProblemas.splice(idx, 1); }
   });
@@ -265,9 +257,7 @@ document.getElementById('btnSaveMatch').addEventListener('click', async (e) => {
   if (btn.disabled) return; 
   if(!versaoAtiva) { showToast('Sem versão ativa configurada!', 'error'); return; }
 
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A sincronizar...'; 
-  btn.classList.add('loading');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A sincronizar...'; btn.classList.add('loading');
 
   const details = {
     autoLeave: parseInt(document.getElementById('autoLeave').value) || 0,
@@ -287,8 +277,7 @@ document.getElementById('btnSaveMatch').addEventListener('click', async (e) => {
   const matchData = {
     pilotos: document.getElementById('pilotos').value,
     target: Number(document.getElementById('pontEsperada').value),
-    auto: Number(document.getElementById('hudAuto').innerText), 
-    tele: Number(document.getElementById('hudTele').innerText), 
+    auto: Number(document.getElementById('hudAuto').innerText), tele: Number(document.getElementById('hudTele').innerText), 
     total: Number(document.getElementById('hudTotal').innerText),
     fouls: (details.foulMinor * 10) + (details.foulMajor * 30),
     eficiencia: document.getElementById('hudEfic').innerText, 
@@ -300,38 +289,27 @@ document.getElementById('btnSaveMatch').addEventListener('click', async (e) => {
     const pathPartidas = collection(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "partidas");
     await addDoc(pathPartidas, matchData);
     
-    btn.innerHTML = '<i class="fas fa-check"></i> Gravado na Cloud!'; 
-    btn.classList.remove('loading'); btn.classList.add('success');
+    btn.innerHTML = '<i class="fas fa-check"></i> Gravado!'; btn.classList.remove('loading'); btn.classList.add('success');
     showToast('Partida gravada na ' + versaoAtiva, 'success');
     
     setTimeout(() => {
-      btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida'; 
-      btn.classList.remove('success');
-      
+      btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida'; btn.classList.remove('success');
       ['autoClass','autoOver','autoPat','teleClass','teleOver','teleDepot','telePat','foulMinor','foulMajor'].forEach(id => { 
         document.getElementById(id).value = '0'; document.getElementById('val-'+id).innerText = '0'; 
       });
       ['autoLeave','teleBase','teleDouble'].forEach(id => { 
         const p = document.getElementById('sg-'+id); 
         p.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active', 'active-orange')); 
-        p.querySelector('.seg-btn').classList.add('active'); 
-        document.getElementById(id).value = '0'; 
+        p.querySelector('.seg-btn').classList.add('active'); document.getElementById(id).value = '0'; 
       });
-      
       tagsProblemas = ['Partida Limpa']; 
       document.querySelectorAll('#grp-problemas .tag').forEach(b => b.classList.remove('active', 'active-orange')); 
       document.querySelector('#grp-problemas .tag[data-exclusive="true"]').classList.add('active-orange');
-      
-      calcMatchScore(); window.scrollTo(0,0);
-      btn.disabled = false;
+      calcMatchScore(); window.scrollTo(0,0); btn.disabled = false;
     }, 1500);
-  } catch (err) { 
-    console.error(err); showToast('Erro ao gravar na Nuvem.', 'error'); 
-    btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading'); btn.disabled = false; 
-  }
+  } catch (err) { console.error(err); showToast('Erro ao gravar na Nuvem.', 'error'); btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading'); btn.disabled = false; }
 });
 
-// Anexando funções ao escopo Window para os botões do HTML
 window.deleteMatch = async (docId) => {
   if(!confirm("Excluir esta partida permanentemente?")) return;
   try {
@@ -356,19 +334,14 @@ document.getElementById('btnCloseEngForm').addEventListener('click', () => {
 window.updateSubsystemsBadges = async () => {
     let latest = { 'DRV': 'v?', 'SEN': 'v?', 'MEC_INT': 'v?', 'MEC_ELE': 'v?', 'SW': 'v?', 'STR': 'v?' };
     let latestTime = { 'DRV': 0, 'SEN': 0, 'MEC_INT': 0, 'MEC_ELE': 0, 'SW': 0, 'STR': 0 };
-
     try {
         for (let v of robotVersionsArray) {
             const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
             snap.forEach(d => {
-                let data = d.data();
-                let sys = data.sys;
+                let data = d.data(); let sys = data.sys;
                 if (sys && latestTime[sys] !== undefined) {
                     let ts = data.timestamp ? data.timestamp.toMillis() : 0;
-                    if (ts > latestTime[sys]) {
-                        latestTime[sys] = ts;
-                        latest[sys] = data.versao || 'v?';
-                    }
+                    if (ts > latestTime[sys]) { latestTime[sys] = ts; latest[sys] = data.versao || 'v?'; }
                 }
             });
         }
@@ -376,14 +349,11 @@ window.updateSubsystemsBadges = async () => {
             const badge = document.getElementById('badge-' + sys);
             if (badge) {
                 badge.innerText = latest[sys] !== 'v?' ? latest[sys] : 'Sem dados';
-                if (latest[sys] !== 'v?') {
-                    badge.style.background = 'var(--orange)'; badge.style.color = '#000';
-                } else {
-                    badge.style.background = 'var(--text-muted)'; badge.style.color = '#fff';
-                }
+                if (latest[sys] !== 'v?') { badge.style.background = 'var(--orange)'; badge.style.color = '#000'; } 
+                else { badge.style.background = 'var(--text-muted)'; badge.style.color = '#fff'; }
             }
         }
-    } catch (error) { console.error("Erro ao atualizar badges:", error); }
+    } catch (error) { console.error("Erro badges:", error); }
 };
 
 window.viewSubsystemHistory = async (sysId) => {
@@ -429,22 +399,15 @@ document.getElementById('btnSaveEng').addEventListener('click', async (e) => {
   const btn = e.currentTarget;
   if (btn.disabled) return;
   
-  const sys = document.getElementById('engSys').value; 
-  const ver = document.getElementById('engVer').value.trim();
-  const title = document.getElementById('engTitulo').value.trim();
-  
+  const sys = document.getElementById('engSys').value; const ver = document.getElementById('engVer').value.trim(); const title = document.getElementById('engTitulo').value.trim();
   if(!ver || !title) { showToast('Versão da Peça e Título são obrigatórios!', 'error'); return; }
 
-  btn.disabled = true;
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
+  btn.disabled = true; const originalText = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
 
   const entry = {
     ticket: `${sys}-${Math.floor(Math.random()*1000).toString().padStart(3, '0')}`,
-    sys: sys, versao: ver, titulo: title, 
-    kpiNome: document.getElementById('kpiName').value || 'KPI', 
-    kpiOld: document.getElementById('kpiOld').value, kpiNew: document.getElementById('kpiNew').value, 
-    kpiDelta: document.getElementById('kpiDelta').value, 
+    sys: sys, versao: ver, titulo: title, kpiNome: document.getElementById('kpiName').value || 'KPI', 
+    kpiOld: document.getElementById('kpiOld').value, kpiNew: document.getElementById('kpiNew').value, kpiDelta: document.getElementById('kpiDelta').value, 
     hipotese: document.getElementById('engHyp').value.trim(), tradeoff: document.getElementById('engTrade').value.trim(), 
     rca: document.getElementById('engRca').value.trim(), link: document.getElementById('engLink').value.trim(), 
     custo: document.getElementById('engCost').value, timestamp: new Date(), dataStr: new Date().toLocaleDateString('pt-BR')
@@ -455,24 +418,16 @@ document.getElementById('btnSaveEng').addEventListener('click', async (e) => {
     await addDoc(pathEng, entry);
     showToast('Commit registado em ' + versaoAtiva, 'success');
     ['engVer','engTitulo','kpiOld','kpiNew','kpiDelta','engHyp','engTrade','engRca','engLink','engCost'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('kpiDelta').className = 'tele-val';
-    document.getElementById('formEngenharia').style.display = 'none';
-    formEngOpen = false;
-    
+    document.getElementById('kpiDelta').className = 'tele-val'; document.getElementById('formEngenharia').style.display = 'none'; formEngOpen = false;
     if(isViewingGlobalHistory && document.getElementById('feedTitle').innerText.includes(sys)) { viewSubsystemHistory(sys); }
-  } catch (err) { console.error(err); showToast('Erro ao gravar.', 'error'); } 
-  finally { btn.disabled = false; btn.innerHTML = originalText; }
+  } catch (err) { console.error(err); showToast('Erro ao gravar.', 'error'); } finally { btn.disabled = false; btn.innerHTML = originalText; }
 });
 
 const deleteEng = async (docId, versaoDoc) => {
   if(!confirm("Deletar este ticket permanentemente?")) return;
   try { 
-    await deleteDoc(doc(db, "robos", ROBO_ATIVO, "versoes", versaoDoc, "engenharia", docId)); 
-    showToast('Ticket removido.', 'success'); 
-    if (isViewingGlobalHistory) {
-        const currentSysName = document.getElementById('feedTitle').innerText.split(': ')[1];
-        if (currentSysName) viewSubsystemHistory(currentSysName);
-    }
+    await deleteDoc(doc(db, "robos", ROBO_ATIVO, "versoes", versaoDoc, "engenharia", docId)); showToast('Ticket removido.', 'success'); 
+    if (isViewingGlobalHistory) { const currentSysName = document.getElementById('feedTitle').innerText.split(': ')[1]; if (currentSysName) viewSubsystemHistory(currentSysName); }
   } catch (e) { console.error(e); }
 };
 
@@ -484,15 +439,11 @@ document.getElementById('engFeed').addEventListener('click', (e) => {
 function renderFilteredEngFeed(logsArray, isGlobal) {
   const feed = document.getElementById('engFeed');
   if (logsArray.length === 0) {
-    feed.innerHTML = `<div class="panel" style="text-align: center; padding: 60px 20px; background: transparent; border: 2px dashed var(--border-light); box-shadow: none;"><i class="fas fa-folder-open" style="font-size: 40px; margin-bottom: 16px; color: var(--border-focus);"></i><p style="color: var(--text-muted); font-size: 14px;">Nenhum commit encontrado para esta visualização.</p></div>`;
-    return;
+    feed.innerHTML = `<div class="panel" style="text-align: center; padding: 60px 20px; background: transparent; border: 2px dashed var(--border-light); box-shadow: none;"><i class="fas fa-folder-open" style="font-size: 40px; margin-bottom: 16px; color: var(--border-focus);"></i><p style="color: var(--text-muted); font-size: 14px;">Nenhum commit encontrado para esta visualização.</p></div>`; return;
   }
-  
   let html = '';
   logsArray.forEach((e) => {
-    const vOrigem = isGlobal ? e.versaoOrigem : versaoAtiva;
-    const safeTicket = e.ticket || 'SYS-000'; const safeDataStr = e.dataStr || 'Data Desconhecida';
-
+    const vOrigem = isGlobal ? e.versaoOrigem : versaoAtiva; const safeTicket = e.ticket || 'SYS-000'; const safeDataStr = e.dataStr || 'Data Desconhecida';
     html += `<div class="ticket-entry" style="border-left-color: var(--orange)">
       <div class="ticket-header">
         <div>
@@ -500,9 +451,7 @@ function renderFilteredEngFeed(logsArray, isGlobal) {
           ${isGlobal ? `<span class="badge-decode" style="margin-left:10px; background:var(--text-muted); color:#fff; font-size:10px;"><i class="fas fa-globe"></i> ${vOrigem}</span>` : ''}
           <span style="font-family: 'JetBrains Mono'; font-weight:700; font-size:12px; margin-left: 10px; color: var(--orange);">${e.versao || 'v?'}</span>
           <h3 class="ticket-title">${e.titulo || 'Sem Título'}</h3>
-          <div class="ticket-meta">
-              <i class="far fa-clock"></i> ${safeDataStr} ${e.custo ? `| <i class="fas fa-coins" style="margin-left:8px;"></i> R$ ${e.custo}` : ''}
-          </div>
+          <div class="ticket-meta"><i class="far fa-clock"></i> ${safeDataStr} ${e.custo ? `| <i class="fas fa-coins" style="margin-left:8px;"></i> R$ ${e.custo}` : ''}</div>
         </div>
         <button class="delete-eng-btn" data-id="${e.docId}" data-origem="${vOrigem}" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 16px; transition: color 0.2s;"><i class="fas fa-trash"></i></button>
       </div>
@@ -528,7 +477,7 @@ function renderFilteredEngFeed(logsArray, isGlobal) {
   feed.innerHTML = html;
 }
 
-// --- LÓGICA DE BLUEPRINT ---
+// --- LÓGICA DE BLUEPRINT INTELIGENTE (AUTO-PREENCHIMENTO) ---
 const calcTotalCost = () => {
   const drv = parseFloat(document.getElementById('bp-drv-cost').value) || 0;
   const sen = parseFloat(document.getElementById('bp-sen-cost').value) || 0;
@@ -536,6 +485,17 @@ const calcTotalCost = () => {
   const mec2 = parseFloat(document.getElementById('bp-mec2-cost').value) || 0;
   document.getElementById('bomTotal').innerText = (drv + sen + mec1 + mec2).toFixed(2);
 };
+
+['bp-drv', 'bp-sen', 'bp-mec1', 'bp-mec2', 'bp-sw'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) {
+    el.addEventListener('change', (e) => {
+      const selectedOpt = e.target.options[e.target.selectedIndex];
+      const costInput = document.getElementById(id + '-cost');
+      if(selectedOpt && costInput) { costInput.value = selectedOpt.dataset.cost || ''; calcTotalCost(); }
+    });
+  }
+});
 
 document.querySelectorAll('.bp-cost-input').forEach(input => input.addEventListener('input', calcTotalCost));
 document.getElementById('btnSize').addEventListener('click', function() { this.classList.toggle('active-orange'); });
@@ -549,10 +509,7 @@ document.getElementById('btnSaveBlueprint').addEventListener('click', async (e) 
   if(!nome || !ver) { showToast('Preencha o Nome e a Versão do Robô!', 'error'); return; }
   
   const global = `${nome} - ${ver}`;
-  
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A gravar na árvore...'; 
-  btn.classList.add('loading');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A gravar na árvore...'; btn.classList.add('loading');
 
   const blueprintData = {
     drv: document.getElementById('bp-drv').value, sen: document.getElementById('bp-sen').value,
@@ -567,11 +524,45 @@ document.getElementById('btnSaveBlueprint').addEventListener('click', async (e) 
     showToast('Nova versão criada e ativada!', 'success');
     btn.innerHTML = '<i class="fas fa-check"></i> Criado!'; btn.classList.remove('loading'); btn.classList.add('success');
     setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Gravar Nova Versão'; btn.classList.remove('success'); btn.disabled = false; }, 1500);
-  } catch (err) {
-    console.error(err); showToast('Erro ao criar Versão.', 'error');
-    btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading'); btn.disabled = false; 
-  }
+  } catch (err) { console.error(err); showToast('Erro ao criar Versão.', 'error'); btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading'); btn.disabled = false; }
 });
+
+async function loadBlueprintOptions() {
+  try {
+    let globalLogs = [];
+    for (let v of robotVersionsArray) {
+        const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
+        snap.forEach(d => globalLogs.push({...d.data()}));
+    }
+    globalLogs.sort((a,b) => b.timestamp - a.timestamp);
+
+    const mapSys = { 'DRV': 'bp-drv', 'SEN': 'bp-sen', 'MEC_INT': 'bp-mec1', 'MEC_ELE': 'bp-mec2', 'SW': 'bp-sw' };
+    let sysData = { 'DRV': [], 'SEN': [], 'MEC_INT': [], 'MEC_ELE': [], 'SW': [] };
+    
+    for (let log of globalLogs) {
+      let sys = log.ticket ? log.ticket.split('-')[0] : (log.sys || '');
+      if (sys === 'MEC') sys = 'MEC_INT'; 
+      if (sysData[sys] !== undefined && log.versao) { 
+        if (!sysData[sys].find(item => item.v === log.versao)) { sysData[sys].push({ v: log.versao, c: log.custo || '' }); }
+      }
+    }
+
+    for (let sys in mapSys) {
+      const selectEl = document.getElementById(mapSys[sys]); const costEl = document.getElementById(mapSys[sys] + '-cost');
+      if(!selectEl) continue;
+      selectEl.innerHTML = '';
+      if(sysData[sys].length === 0) {
+        selectEl.innerHTML = '<option value="">Sem Dados</option>'; if(costEl) costEl.value = '';
+      } else {
+        sysData[sys].forEach(item => {
+            let opt = document.createElement('option'); opt.value = item.v; opt.text = item.v; opt.dataset.cost = item.c; selectEl.appendChild(opt);
+        });
+        selectEl.selectedIndex = 0; if(costEl) costEl.value = sysData[sys][0].c;
+      }
+    }
+    calcTotalCost(); 
+  } catch(err) { console.error(err); showToast('Erro ao carregar peças.', 'error'); } 
+}
 
 const renderCompare = () => {
   const valA = document.getElementById('compA').value; const valB = document.getElementById('compB').value;
@@ -592,8 +583,7 @@ const renderCompare = () => {
         classA = 'comp-diff'; classB = 'comp-diff';
         if(isNumeric) {
             let numA = parseFloat(a) || 0; let numB = parseFloat(b) || 0;
-            if(numA < numB) { classA = 'comp-better'; classB = 'comp-worse'; }
-            else if (numB < numA) { classB = 'comp-better'; classA = 'comp-worse'; }
+            if(numA < numB) { classA = 'comp-better'; classB = 'comp-worse'; } else if (numB < numA) { classB = 'comp-better'; classA = 'comp-worse'; }
         }
     }
     return `<tr><th>${label}</th><td class="${classA}">${isNumeric && a !== '-' && key === 'custoTotal' ? 'R$ '+a : a}</td><td class="${classB}">${isNumeric && b !== '-' && key === 'custoTotal' ? 'R$ '+b : b}</td></tr>`;
@@ -614,9 +604,7 @@ document.getElementById('compB').addEventListener('change', renderCompare);
 function renderMatchesTable() {
   const tbody = document.getElementById('matchesTableBody');
   if (!tbody) return;
-  if (matchesData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px;">Nenhuma partida registada para <strong>${versaoAtiva}</strong>.</td></tr>`; return;
-  }
+  if (matchesData.length === 0) { tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px;">Nenhuma partida registada para <strong>${versaoAtiva}</strong>.</td></tr>`; return; }
   let html = '';
   matchesData.forEach(m => {
     const dataStr = m.timestamp ? new Date(m.timestamp.seconds * 1000).toLocaleDateString('pt-BR') : '-';
@@ -636,10 +624,7 @@ const refreshCharts = () => {
   Object.keys(chartsInstances).forEach(key => { if(chartsInstances[key]) chartsInstances[key].destroy(); });
 
   const sysCounts = { 'MEC_INT': 0, 'MEC_ELE': 0, 'DRV': 0, 'SEN': 0, 'SW': 0, 'STR': 0 };
-  engLogsData.forEach(log => {
-    let s = log.ticket ? log.ticket.split('-')[0] : log.sys;
-    if (s === 'MEC') s = 'MEC_INT'; if(sysCounts[s] !== undefined) sysCounts[s]++;
-  });
+  engLogsData.forEach(log => { let s = log.ticket ? log.ticket.split('-')[0] : log.sys; if (s === 'MEC') s = 'MEC_INT'; if(sysCounts[s] !== undefined) sysCounts[s]++; });
 
   chartsInstances.polar = new Chart(document.getElementById('devOpsEffortChart'), {
     type: 'polarArea', data: { labels: ['Intake', 'Elevador', 'Chassi', 'Sensores', 'Código', 'Estratégia'], datasets: [{ data: [sysCounts.MEC_INT, sysCounts.MEC_ELE, sysCounts.DRV, sysCounts.SEN, sysCounts.SW, sysCounts.STR], backgroundColor: [ orange, '#f59e0b', blue, '#8b5cf6', green, '#ef4444' ], borderWidth: 1, borderColor: isDark ? '#121212' : '#fff' }] },
@@ -654,9 +639,7 @@ const refreshCharts = () => {
   }
 
   let labels = []; let totals = []; let autos = []; let teles = []; let efficiencySum = 0; let cleanMatches = 0; let count = 0; let foulsTotal = 0;
-  let problemasCount = {};
-  let sumDetails = { autoLeave: 0, autoClass: 0, autoOver: 0, autoPat: 0, teleClass: 0, teleOver: 0, teleDepot: 0, telePat: 0, teleBase: 0, teleDouble: 0 };
-
+  let problemasCount = {}; let sumDetails = { autoLeave: 0, autoClass: 0, autoOver: 0, autoPat: 0, teleClass: 0, teleOver: 0, teleDepot: 0, telePat: 0, teleBase: 0, teleDouble: 0 };
   const sortedMatches = [...matchesData].reverse();
 
   sortedMatches.forEach((d, index) => {
@@ -664,32 +647,19 @@ const refreshCharts = () => {
     if(d.target && d.target > 0) efficiencySum += ((d.total || 0) / d.target) * 100;
     if(d.problemas && d.problemas.includes('Partida Limpa')) cleanMatches++;
     if(d.fouls) foulsTotal += d.fouls;
-
-    if(d.problemas && d.problemas !== 'Limpa' && !d.problemas.includes('Partida Limpa')) {
-      d.problemas.split(', ').forEach(p => { problemasCount[p] = (problemasCount[p] || 0) + 1; });
-    }
-
+    if(d.problemas && d.problemas !== 'Limpa' && !d.problemas.includes('Partida Limpa')) { d.problemas.split(', ').forEach(p => { problemasCount[p] = (problemasCount[p] || 0) + 1; }); }
     if(d.details) { for(let key in sumDetails) { sumDetails[key] += (d.details[key] || 0); } }
     count++;
   });
 
-  const avgTotal = totals.reduce((a,b)=>a+b,0)/count;
-  const bestMatch = Math.max(...totals);
-  const mean = avgTotal;
-  const variance = totals.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / count;
-  const stdDev = Math.sqrt(variance);
-  const cv = mean > 0 ? (stdDev / mean) * 100 : 0;
+  const avgTotal = totals.reduce((a,b)=>a+b,0)/count; const bestMatch = Math.max(...totals); const mean = avgTotal;
+  const variance = totals.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / count; const stdDev = Math.sqrt(variance); const cv = mean > 0 ? (stdDev / mean) * 100 : 0;
   const reliability = Math.round((cleanMatches / count) * 100);
-  document.getElementById('avgTotal').innerText = avgTotal.toFixed(0);
-  document.getElementById('bestMatch').innerText = bestMatch;
-  document.getElementById('consistencyCV').innerText = cv.toFixed(1) + '%';
-  document.getElementById('reliabilityRate').innerText = reliability + '%';
+  document.getElementById('avgTotal').innerText = avgTotal.toFixed(0); document.getElementById('bestMatch').innerText = bestMatch;
+  document.getElementById('consistencyCV').innerText = cv.toFixed(1) + '%'; document.getElementById('reliabilityRate').innerText = reliability + '%';
 
   const movingAvg = []; const windowSize = 3;
-  for (let i = 0; i < totals.length; i++) {
-    if (i < windowSize - 1) movingAvg.push(null);
-    else { const sum = totals.slice(i - windowSize + 1, i + 1).reduce((a,b) => a + b, 0); movingAvg.push(sum / windowSize); }
-  }
+  for (let i = 0; i < totals.length; i++) { if (i < windowSize - 1) movingAvg.push(null); else { const sum = totals.slice(i - windowSize + 1, i + 1).reduce((a,b) => a + b, 0); movingAvg.push(sum / windowSize); } }
   chartsInstances.history = new Chart(document.getElementById('scoreHistoryChart'), {
     type: 'line', data: { labels: labels, datasets: [ { label: 'Pts Totais', data: totals, borderColor: orange, backgroundColor: bgOrange, fill: true, tension: 0.3, borderWidth: 3, pointRadius: 4, pointBackgroundColor: orange }, { label: 'Média Móvel (3)', data: movingAvg, borderColor: blue, borderDash: [5,5], pointRadius: 0, fill: false, borderWidth: 2 } ] },
     options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } }, scales: { y: { grid: {color: gridColor}, ticks: { color: textColor } }, x: { grid: {display:false}, ticks: { color: textColor } } } }
@@ -739,48 +709,6 @@ const refreshCharts = () => {
   });
 };
 document.getElementById('btnRefreshCharts').addEventListener('click', refreshCharts);
-
-const btnAutoFill = document.getElementById('btnAutoFillBlueprint');
-const novoBtnAutoFill = btnAutoFill.cloneNode(true);
-btnAutoFill.parentNode.replaceChild(novoBtnAutoFill, btnAutoFill);
-novoBtnAutoFill.addEventListener('click', async (e) => {
-  const btn = e.currentTarget;
-  if (btn.disabled) return;
-  btn.disabled = true; 
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A buscar na Nuvem...';
-  
-  try {
-    let globalLogs = [];
-    for (let v of robotVersionsArray) {
-        const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
-        snap.forEach(d => globalLogs.push({...d.data()}));
-    }
-    globalLogs.sort((a,b) => b.timestamp - a.timestamp);
-    let latest = { 'DRV': {v:'', c:''}, 'SEN': {v:'', c:''}, 'MEC_INT': {v:'', c:''}, 'MEC_ELE': {v:'', c:''}, 'SW': {v:'', c:''} };
-    let foundData = false;
-    
-    for (let log of globalLogs) {
-      foundData = true;
-      let sys = log.ticket ? log.ticket.split('-')[0] : (log.sys || '');
-      if (sys === 'MEC') sys = 'MEC_INT'; 
-      if (latest[sys] !== undefined && latest[sys].v === '') { latest[sys].v = log.versao || ''; latest[sys].c = log.custo || ''; }
-    }
-
-    if (!foundData) { showToast('Nenhuma informação encontrada.', 'warning'); return; }
-
-    const setVal = (id, val) => { const el = document.getElementById(id); if(el && val && el.value === '') el.value = val; };
-    setVal('bp-drv', latest['DRV'].v); setVal('bp-drv-cost', latest['DRV'].c);
-    setVal('bp-sen', latest['SEN'].v); setVal('bp-sen-cost', latest['SEN'].c);
-    setVal('bp-mec1', latest['MEC_INT'].v); setVal('bp-mec1-cost', latest['MEC_INT'].c);
-    setVal('bp-mec2', latest['MEC_ELE'].v); setVal('bp-mec2-cost', latest['MEC_ELE'].c);
-    setVal('bp-sw', latest['SW'].v);
-    
-    calcTotalCost(); 
-    showToast('Apenas módulos MAIS RECENTES importados!', 'success');
-  } catch(err) { console.error(err); showToast('Erro ao puxar dados da nuvem.', 'error'); } 
-  finally { btn.innerHTML = originalText; btn.disabled = false; }
-});
 
 // --- INICIALIZAÇÃO GERAL DA APLICAÇÃO ---
 calcMatchScore();

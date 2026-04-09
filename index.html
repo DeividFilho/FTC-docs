@@ -16,9 +16,7 @@
     }
   </script>
 
-<link rel="stylesheet" href="css/styles.css">
-
-
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="">
 
@@ -67,7 +65,6 @@
         <button class="nav-tab" data-target-tab="charts"><i class="fas fa-chart-pie"></i> Analytics</button>
         <button class="nav-tab" data-target-tab="help"><i class="fas fa-book"></i> Ajuda</button>
       </div>
-
     </header>
 
     <main class="container">
@@ -162,7 +159,6 @@
       </section>
 
       <section id="sec-eng" class="section">
-        
         <div class="panel-header" style="margin-bottom: 24px; border: none; padding: 0;">
           <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
             <i class="fas fa-server"></i> DevOps Dashboard
@@ -343,8 +339,7 @@
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title"><i class="fas fa-cubes"></i> Bill of Materials & Configuração</div>
-            <button class="nav-tab active" id="btnAutoFillBlueprint" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Puxar Última Versão da Nuvem</button>
-          </div>
+            </div>
 
           <div class="grid-2" style="max-width: 500px; margin: 0 auto 30px auto;">
             <div class="fg">
@@ -362,14 +357,14 @@
               <div class="blueprint-card">
                 <div class="blueprint-header">DRV - Chassi</div>
                 <div class="blueprint-body bp-input-group">
-                  <input type="text" id="bp-drv" class="blueprint-input bp-ver" placeholder="Automático">
+                  <select id="bp-drv" class="blueprint-input bp-ver" style="appearance: auto; padding-right: 25px;"><option value="">Automático</option></select>
                   <input type="number" id="bp-drv-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
                 </div>
               </div>
               <div class="blueprint-card">
                 <div class="blueprint-header">SEN - Sensores</div>
                 <div class="blueprint-body bp-input-group">
-                  <input type="text" id="bp-sen" class="blueprint-input bp-ver" placeholder="Automático">
+                  <select id="bp-sen" class="blueprint-input bp-ver" style="appearance: auto; padding-right: 25px;"><option value="">Automático</option></select>
                   <input type="number" id="bp-sen-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
                 </div>
               </div>
@@ -399,14 +394,14 @@
               <div class="blueprint-card">
                 <div class="blueprint-header">MEC - Intake/Garra</div>
                 <div class="blueprint-body bp-input-group">
-                  <input type="text" id="bp-mec1" class="blueprint-input bp-ver" placeholder="Automático">
+                  <select id="bp-mec1" class="blueprint-input bp-ver" style="appearance: auto; padding-right: 25px;"><option value="">Automático</option></select>
                   <input type="number" id="bp-mec1-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
                 </div>
               </div>
               <div class="blueprint-card">
                 <div class="blueprint-header">MEC - Elevador</div>
                 <div class="blueprint-body bp-input-group">
-                  <input type="text" id="bp-mec2" class="blueprint-input bp-ver" placeholder="Automático">
+                  <select id="bp-mec2" class="blueprint-input bp-ver" style="appearance: auto; padding-right: 25px;"><option value="">Automático</option></select>
                   <input type="number" id="bp-mec2-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
                 </div>
               </div>
@@ -415,7 +410,9 @@
 
           <div class="blueprint-card" style="max-width: 400px; margin: 40px auto 0 auto;">
             <div class="blueprint-header" style="background: var(--text-main); color: var(--white-pure);">SW - Software / Código</div>
-            <div class="blueprint-body"><input type="text" id="bp-sw" class="blueprint-input" placeholder="Tag do Commit (ex: v1.9.4)" style="text-align: center;"></div>
+            <div class="blueprint-body">
+                <select id="bp-sw" class="blueprint-input" style="appearance: auto; text-align: center;"><option value="">Buscando Commits...</option></select>
+            </div>
           </div>
 
         </div>
@@ -629,7 +626,10 @@
       </section>
 
     </main>
-  </div> <div class="toast-container" id="toastContainer"></div>
+  </div> 
+
+  <div class="toast-container" id="toastContainer"></div>
+
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
