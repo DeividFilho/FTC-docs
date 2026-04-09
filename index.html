@@ -68,6 +68,35 @@
       transition: background-color 0.3s, color 0.3s;
     }
 
+    /* Trava Anti-Duplo-Clique Global para Botões */
+    button:disabled {
+      opacity: 0.6 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+
+    /* --- TELA DE LOGIN --- */
+    #login-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg-body); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+    .login-box {
+      background: var(--bg-surface); border: 2px solid var(--orange);
+      border-radius: var(--radius-md); padding: 40px;
+      width: 100%; max-width: 400px; box-shadow: var(--shadow-glow);
+      text-align: center;
+    }
+    .login-box h2 { font-family: 'JetBrains Mono'; margin-bottom: 24px; color: var(--text-main); }
+    .login-box input { margin-bottom: 16px; width: 100%; }
+    .login-box button { width: 100%; padding: 14px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; font-family: 'JetBrains Mono'; transition: var(--transition); }
+    .login-box button:hover { transform: translateY(-2px); box-shadow: var(--shadow-float); }
+    .hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+
+    /* Esconder o app principal no início */
+    #app-container { display: none; }
+
     .topbar {
       position: sticky; top: 0; z-index: 100;
       background: var(--black-pure); border-bottom: 2px solid var(--orange);
@@ -87,6 +116,7 @@
       background: transparent; border: none; padding: 8px 16px; border-radius: 4px;
       font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #888;
       cursor: pointer; transition: var(--transition); text-transform: uppercase; white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
     }
     .nav-tab:hover { color: #fff; }
     .nav-tab.active { background: var(--orange); color: #000; box-shadow: var(--shadow-glow); }
@@ -122,7 +152,7 @@
     
     label { font-size: 12px; font-weight: 600; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;}
 
-    input[type="text"], input[type="number"]:not(.hud-input), input[type="url"], select, textarea {
+    input[type="text"], input[type="number"]:not(.hud-input), input[type="url"], input[type="email"], input[type="password"], select, textarea {
       background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-light); border-radius: var(--radius-sm);
       padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; transition: var(--transition); width: 100%; outline: none;
     }
@@ -158,16 +188,13 @@
 
     .timeline { position: relative; padding-left: 30px; margin-top: 20px; }
     .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border-light); }
-    .ticket-entry { position: relative; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--border-focus); transition: var(--transition); }
-    .ticket-entry:hover { border-color: var(--orange); box-shadow: var(--shadow-glow); border-left-color: var(--orange); }
+    .ticket-entry { position: relative; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--orange); transition: var(--transition); }
+    .ticket-entry:hover { border-color: var(--orange); box-shadow: var(--shadow-glow); }
     .timeline-dot { position: absolute; left: -31px; top: 24px; width: 14px; height: 14px; border-radius: 50%; background: var(--orange); border: 3px solid var(--bg-body); }
     .ticket-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
     .ticket-id { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text-main); background: var(--border-light); padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px;}
     .ticket-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-top: 8px; line-height: 1.3;}
     .ticket-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 12px; align-items: center; margin-top: 8px; font-family: 'JetBrains Mono'; text-transform: uppercase;}
-    .status-testing { background: rgba(245, 158, 11, 0.1); color: var(--brand-warn); border: 1px solid rgba(245, 158, 11, 0.2); }
-    .status-deployed { background: rgba(16, 185, 129, 0.1); color: var(--brand-tele); border: 1px solid rgba(16, 185, 129, 0.2); }
-    .status-failed { background: rgba(239, 68, 68, 0.1); color: var(--brand-red); border: 1px solid rgba(239, 68, 68, 0.2); }
     .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px; }
     .data-block { background: var(--bg-input); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
     .data-block.full { grid-column: 1 / -1; }
@@ -221,14 +248,15 @@
     .help-card li { margin-bottom: 8px; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; color: var(--text-main); }
     .help-card li i { color: var(--orange); width: 18px; margin-top: 3px; }
     .help-tip { background: var(--orange-light); border-left: 4px solid var(--orange); padding: 12px 16px; border-radius: var(--radius-sm); margin-top: 16px; font-size: 13px; }
-    .faq-item { margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 16px; }
-    .faq-item h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
-    .faq-item p { color: var(--text-muted); }
+
+    /* Grid de Subsistemas */
+    .subsystem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 
     .toast-container { position: fixed; bottom: 100px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; }
     .toast { background: var(--bg-surface); border-left: 6px solid var(--orange); color: var(--text-main); padding: 16px 24px; border-radius: var(--radius-sm); box-shadow: var(--shadow-float); font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; max-width: 350px; border: 1px solid var(--border-light); }
     .toast.success { border-left-color: var(--brand-tele); }
     .toast.error { border-left-color: var(--brand-red); }
+    .toast.warning { border-left-color: var(--brand-warn); }
     .toast i { font-size: 18px; }
     @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
 
@@ -239,7 +267,7 @@
 
     @media (max-width: 900px) { .robot-map-container { grid-template-columns: 1fr; gap: 16px; } .robot-center { display: none; } }
     @media (max-width: 768px) {
-      .topbar { flex-direction: column; gap: 16px; padding: 16px; } .nav-tabs { width: 100%; display: flex; } .nav-tab { flex: 1; text-align: center; }
+      .topbar { flex-direction: column; gap: 16px; padding: 16px; } .nav-tabs { width: 100%; display: flex; flex-wrap: wrap; } .nav-tab { flex: 1 1 30%; text-align: center; justify-content: center; }
       .grid-2 { grid-template-columns: 1fr; } .col-span-2 { grid-column: span 1; } .data-grid { grid-template-columns: 1fr; }
       .timeline { padding-left: 20px; } .timeline::before { left: 4px; } .timeline-dot { left: -21px; width: 10px; height: 10px; }
       .telemetry-group { flex-direction: column; } .telemetry-col { border-right: none; border-bottom: 1px solid var(--border-light); } .telemetry-col:last-child { border-bottom: none; }
@@ -250,543 +278,620 @@
 </head>
 <body class="">
 
-  <header class="topbar">
-    <div class="logo-container">
-      <h1>MetalLab</h1>
-      <span class="badge-decode">DECODE_OS</span>
+  <div id="login-screen">
+    <div class="login-box">
+      <h2><i class="fas fa-lock" style="color: var(--orange);"></i> Acesso Restrito</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Insira suas credenciais do MetalLab.</p>
+      
+      <input type="email" id="emailInput" placeholder="E-mail Operacional">
+      <input type="password" id="senhaInput" placeholder="Senha">
+      
+      <button id="btnLogin" style="background: var(--text-main); color: var(--bg-body);"><i class="fas fa-sign-in-alt"></i> AUTENTICAR</button>
     </div>
+  </div>
 
-    <div class="global-version-container">
-      <i class="fas fa-code-branch" style="color: var(--orange);"></i>
-      <select id="globalVersionSelect">
-        <option value="v1.0">A carregar banco de dados...</option>
-      </select>
-    </div>
-    
-    <div class="nav-tabs">
-      <button class="nav-tab active" data-target-tab="match">Match Tracker</button>
-      <button class="nav-tab" data-target-tab="eng">DevOps Log</button>
-      <button class="nav-tab" data-target-tab="robot">Blueprint</button>
-      <button class="nav-tab" data-target-tab="compare">Compare</button>
-      <button class="nav-tab" data-target-tab="charts">Analytics</button>
-      <button class="nav-tab" data-target-tab="help">Ajuda</button>
-      <button class="nav-tab" data-target-tab="global-eng">Global Logs</button>
-    </div>
+  <div id="app-container">
 
-    <button class="theme-btn" id="themeToggle">
-      <i class="fas fa-moon"></i>
-      <i class="fas fa-sun"></i>
-    </button>
-  </header>
-
-  <main class="container">
-
-    <section id="sec-match" class="section active">
-      <div class="hud-grid">
-        <div class="hud-card accent"><span class="hud-lbl">Pts Totais</span><span class="hud-val" id="hudTotal">0</span></div>
-        <div class="hud-card"><span class="hud-lbl">Autônomo</span><span class="hud-val" id="hudAuto">0</span></div>
-        <div class="hud-card"><span class="hud-lbl">Tele-op</span><span class="hud-val" id="hudTele">0</span></div>
-        <div class="hud-card danger"><span class="hud-lbl" style="color:var(--brand-red)">Fouls (Penalidades)</span><span class="hud-val" id="hudFouls" style="color:var(--brand-red)">0</span></div>
+    <header class="topbar">
+      <div class="logo-container">
+        <h1>MetalLab</h1>
+        <span class="badge-decode">DECODE_OS</span>
       </div>
 
-      <div class="grid-2">
-        <div class="fg">
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title"><i class="fas fa-microchip"></i> Setup da Partida</span></div>
-            <div class="fg" style="margin-bottom: 16px;">
-              <label>Configuração Ativa (Bloqueada pelo Global)</label>
-              <select id="matchMec" disabled><option value="">Sincronizando...</option></select>
-            </div>
-            <div class="grid-2">
-              <div class="fg"><label>Pilotos</label><input type="text" id="pilotos" placeholder="Nomes"></div>
-              <div class="fg"><label>Meta (Target Pts)</label><input type="number" id="pontEsperada" value="100"></div>
-              <div class="fg col-span-2"><label>Eficiência Calculada</label><span id="hudEfic" style="font-family: 'JetBrains Mono'; font-size: 24px; font-weight: 700;">0%</span></div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title"><i class="fas fa-robot"></i> Autônomo</span></div>
-            <div class="fg" style="margin-bottom: 20px;">
-              <label>Saiu da Linha (LEAVE) [3pt]</label>
-              <div class="segmented" id="sg-autoLeave">
-                <button class="seg-btn active seg-option" data-target="autoLeave" data-val="0" title="Não saiu da linha">Não</button>
-                <button class="seg-btn seg-option" data-target="autoLeave" data-val="3" data-orange="true" title="Saiu da linha (+3 pts)">Sim (+3)</button>
-                <input type="hidden" id="autoLeave" value="0">
-              </div>
-            </div>
-            <div class="grid-2" style="gap: 16px;">
-              <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-autoClass">0</span><button class="c-btn counter-btn" data-target="autoClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="autoClass" value="0"></div></div>
-              <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-autoOver">0</span><button class="c-btn counter-btn" data-target="autoOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="autoOver" value="0"></div></div>
-            </div>
-            <div class="fg" style="margin-top: 16px;"><label>Pattern Match [x2]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoPat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-autoPat">0</span><button class="c-btn counter-btn" data-target="autoPat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="autoPat" value="0"></div></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header"><span class="panel-title"><i class="fas fa-gamepad"></i> Tele-Op & EndGame</span></div>
-          <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
-            <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-teleClass">0</span><button class="c-btn counter-btn" data-target="teleClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="teleClass" value="0"></div></div>
-            <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-teleOver">0</span><button class="c-btn counter-btn" data-target="teleOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="teleOver" value="0"></div></div>
-            <div class="fg"><label>No Depot [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleDepot" data-delta="-1" title="Diminuir No Depot">-</button><span class="c-val" id="val-teleDepot">0</span><button class="c-btn counter-btn" data-target="teleDepot" data-delta="1" title="Aumentar No Depot">+</button><input type="hidden" id="teleDepot" value="0"></div></div>
-            <div class="fg"><label>Pattern Match [x2]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="telePat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-telePat">0</span><button class="c-btn counter-btn" data-target="telePat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="telePat" value="0"></div></div>
-          </div>
-          <div class="fg" style="margin-bottom: 20px;">
-            <label>Estacionamento na BASE</label>
-            <div class="segmented" id="sg-teleBase">
-              <button class="seg-btn active seg-option" data-target="teleBase" data-val="0" title="Nenhum estacionamento">Nenhum</button>
-              <button class="seg-btn seg-option" data-target="teleBase" data-val="5" data-orange="true" title="Parcial (+5 pts)">Parcial (+5)</button>
-              <button class="seg-btn seg-option" data-target="teleBase" data-val="10" data-orange="true" title="Total (+10 pts)">Total (+10)</button>
-              <input type="hidden" id="teleBase" value="0">
-            </div>
-          </div>
-          <div class="fg" style="margin-bottom: 24px;">
-            <label>Bónus 2 Robôs na Base [10pt]</label>
-            <div class="segmented" id="sg-teleDouble">
-              <button class="seg-btn active seg-option" data-target="teleDouble" data-val="0" title="Sem bónus">Não</button>
-              <button class="seg-btn seg-option" data-target="teleDouble" data-val="10" data-orange="true" title="Bónus (+10 pts)">Sim (+10)</button>
-              <input type="hidden" id="teleDouble" value="0">
-            </div>
-          </div>
-          
-          <div class="panel-header" style="margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 20px;"><span class="panel-title" style="color:var(--brand-red)"><i class="fas fa-exclamation-triangle"></i> Penalidades (Fouls)</span></div>
-          <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
-            <div class="fg"><label>Minor Fouls [x10 Pts p/ Oponente]</label><div class="counter-widget"><button class="c-btn danger counter-btn" data-target="foulMinor" data-delta="-1" title="Diminuir Minor Fouls">-</button><span class="c-val" id="val-foulMinor" style="color:var(--brand-red)">0</span><button class="c-btn danger counter-btn" data-target="foulMinor" data-delta="1" title="Aumentar Minor Fouls">+</button><input type="hidden" id="foulMinor" value="0"></div></div>
-            <div class="fg"><label>Major Fouls [x30 Pts p/ Oponente]</label><div class="counter-widget"><button class="c-btn danger counter-btn" data-target="foulMajor" data-delta="-1" title="Diminuir Major Fouls">-</button><span class="c-val" id="val-foulMajor" style="color:var(--brand-red)">0</span><button class="c-btn danger counter-btn" data-target="foulMajor" data-delta="1" title="Aumentar Major Fouls">+</button><input type="hidden" id="foulMajor" value="0"></div></div>
-          </div>
-
-          <div class="fg" style="border-top: 1px solid var(--border-light); padding-top: 20px;">
-            <label>Diagnóstico da Partida</label>
-            <div class="tag-cloud" id="grp-problemas">
-              <button class="tag active-orange tag-problem" data-exclusive="true" title="Partida sem incidentes">Partida Limpa</button>
-              <button class="tag tag-problem" title="Falha mecânica">Falha Mecânica</button>
-              <button class="tag tag-problem" title="Erro de código">Erro de Código</button>
-              <button class="tag tag-problem" title="Erro do piloto">Erro de Piloto</button>
-              <button class="tag tag-problem" title="Desconexão">Desconexão</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button class="fab" id="btnSaveMatch"><i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida</button>
-    </section>
-
-    <section id="sec-eng" class="section">
-      <div class="panel" id="formEngenharia" style="border-left: 4px solid var(--orange); display: none;">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-terminal"></i> Novo Commit de Engenharia</div>
-          <button class="theme-btn" id="btnCloseEngForm"><i class="fas fa-times"></i></button>
-        </div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+        <span id="userBadge" style="font-size: 12px; font-family: 'JetBrains Mono'; color: var(--orange); font-weight: bold; text-transform: uppercase;"></span>
+        <button class="theme-btn" id="btnLogout" title="Sair do Sistema" style="border: 1px solid var(--border-light); border-radius: 4px; background: var(--bg-input);"><i class="fas fa-power-off" style="color: var(--brand-red);"></i></button>
         
+        <button class="theme-btn" id="themeToggle" style="margin-left: 8px;">
+          <i class="fas fa-moon"></i>
+          <i class="fas fa-sun"></i>
+        </button>
+      </div>
+
+      <div class="global-version-container">
+        <i class="fas fa-code-branch" style="color: var(--orange);"></i>
+        <select id="globalVersionSelect">
+          <option value="v1.0">A carregar banco de dados...</option>
+        </select>
+      </div>
+      
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-target-tab="match"><i class="fas fa-gamepad"></i> Match</button>
+        <button class="nav-tab" data-target-tab="eng"><i class="fas fa-server"></i> DevOps Log</button>
+        <button class="nav-tab" data-target-tab="robot"><i class="fas fa-cubes"></i> Blueprint</button>
+        <button class="nav-tab" data-target-tab="compare"><i class="fas fa-not-equal"></i> Compare</button>
+        <button class="nav-tab" data-target-tab="charts"><i class="fas fa-chart-pie"></i> Analytics</button>
+        <button class="nav-tab" data-target-tab="help"><i class="fas fa-book"></i> Ajuda</button>
+      </div>
+
+    </header>
+
+    <main class="container">
+
+      <section id="sec-match" class="section active">
+        <div class="hud-grid">
+          <div class="hud-card accent"><span class="hud-lbl">Pts Totais</span><span class="hud-val" id="hudTotal">0</span></div>
+          <div class="hud-card"><span class="hud-lbl">Autônomo</span><span class="hud-val" id="hudAuto">0</span></div>
+          <div class="hud-card"><span class="hud-lbl">Tele-op</span><span class="hud-val" id="hudTele">0</span></div>
+          <div class="hud-card danger"><span class="hud-lbl" style="color:var(--brand-red)">Fouls (Penalidades)</span><span class="hud-val" id="hudFouls" style="color:var(--brand-red)">0</span></div>
+        </div>
+
         <div class="grid-2">
           <div class="fg">
-            <label>Sub-Sistema (Módulo) <span style="color:var(--orange)">*</span></label>
-            <select id="engSys">
-              <option value="MEC_INT">MEC - Intake/Garra</option>
-              <option value="MEC_ELE">MEC - Elevador/Braço</option>
-              <option value="DRV">DRV - Chassi/Drivetrain</option>
-              <option value="SEN">SEN - Sensores/Visão</option>
-              <option value="SW">SW - Software/Código</option>
-              <option value="STR">STR - Estratégia</option>
-            </select>
-          </div>
-          <div class="fg">
-            <label>Versão da Peça/Sprint (Ex: v2.1) <span style="color:var(--orange)">*</span></label>
-            <input type="text" id="engVer" placeholder="v1.0">
-          </div>
-          <div class="fg col-span-2">
-            <label>Título do Ticket / Modificação <span style="color:var(--orange)">*</span></label>
-            <input type="text" id="engTitulo" placeholder="Ex: Substituição das rodas mecanum por omni">
-          </div>
+            <div class="panel">
+              <div class="panel-header"><span class="panel-title"><i class="fas fa-microchip"></i> Setup da Partida</span></div>
+              <div class="fg" style="margin-bottom: 16px;">
+                <label>Configuração Ativa (Bloqueada pelo Global)</label>
+                <select id="matchMec" disabled><option value="">Sincronizando...</option></select>
+              </div>
+              <div class="grid-2">
+                <div class="fg"><label>Pilotos</label><input type="text" id="pilotos" placeholder="Nomes"></div>
+                <div class="fg"><label>Meta (Target Pts)</label><input type="number" id="pontEsperada" value="100"></div>
+                <div class="fg col-span-2"><label>Eficiência Calculada</label><span id="hudEfic" style="font-family: 'JetBrains Mono'; font-size: 24px; font-weight: 700;">0%</span></div>
+              </div>
+            </div>
 
-          <div class="fg col-span-2" style="margin-top: 16px;">
-            <label style="color: var(--orange);"><i class="fas fa-chart-line"></i> Telemetria & KPIs (Delta)</label>
-            <div class="telemetry-group">
-              <div class="telemetry-col" style="flex: 1.5;">
-                <div class="tele-lbl">Métrica Avaliada</div>
-                <input type="text" id="kpiName" class="tele-val" placeholder="Ex: Tempo de Ciclo" style="font-size: 14px; font-family: 'Inter'; font-weight: 500;">
+            <div class="panel">
+              <div class="panel-header"><span class="panel-title"><i class="fas fa-robot"></i> Autônomo</span></div>
+              <div class="fg" style="margin-bottom: 20px;">
+                <label>Saiu da Linha (LEAVE) [3pt]</label>
+                <div class="segmented" id="sg-autoLeave">
+                  <button class="seg-btn active seg-option" data-target="autoLeave" data-val="0" title="Não saiu da linha">Não</button>
+                  <button class="seg-btn seg-option" data-target="autoLeave" data-val="3" data-orange="true" title="Saiu da linha (+3 pts)">Sim (+3)</button>
+                  <input type="hidden" id="autoLeave" value="0">
+                </div>
               </div>
-              <div class="telemetry-col">
-                <div class="tele-lbl">Valor Antigo</div>
-                <input type="number" id="kpiOld" class="tele-val kpi-input" placeholder="0.0" step="0.1">
+              <div class="grid-2" style="gap: 16px;">
+                <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-autoClass">0</span><button class="c-btn counter-btn" data-target="autoClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="autoClass" value="0"></div></div>
+                <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-autoOver">0</span><button class="c-btn counter-btn" data-target="autoOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="autoOver" value="0"></div></div>
               </div>
-              <div class="telemetry-col">
-                <div class="tele-lbl">Valor Novo</div>
-                <input type="number" id="kpiNew" class="tele-val kpi-input" placeholder="0.0" step="0.1">
-              </div>
-              <div class="telemetry-col">
-                <div class="tele-lbl">Evolução (Δ)</div>
-                <input type="text" id="kpiDelta" class="tele-val" placeholder="0.0" readonly tabindex="-1">
-              </div>
+              <div class="fg" style="margin-top: 16px;"><label>Pattern Match [x2]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoPat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-autoPat">0</span><button class="c-btn counter-btn" data-target="autoPat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="autoPat" value="0"></div></div>
             </div>
           </div>
 
-          <div class="fg col-span-2" style="margin-top: 16px;">
-            <label><i class="fas fa-flask text-muted"></i> Hipótese / Levantamento de Requisitos</label>
-            <textarea id="engHyp" placeholder="Qual era o problema? O que precisava de resolver?"></textarea>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title"><i class="fas fa-gamepad"></i> Tele-Op & EndGame</span></div>
+            <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
+              <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-teleClass">0</span><button class="c-btn counter-btn" data-target="teleClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="teleClass" value="0"></div></div>
+              <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-teleOver">0</span><button class="c-btn counter-btn" data-target="teleOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="teleOver" value="0"></div></div>
+              <div class="fg"><label>No Depot [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleDepot" data-delta="-1" title="Diminuir No Depot">-</button><span class="c-val" id="val-teleDepot">0</span><button class="c-btn counter-btn" data-target="teleDepot" data-delta="1" title="Aumentar No Depot">+</button><input type="hidden" id="teleDepot" value="0"></div></div>
+              <div class="fg"><label>Pattern Match [x2]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="telePat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-telePat">0</span><button class="c-btn counter-btn" data-target="telePat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="telePat" value="0"></div></div>
+            </div>
+            <div class="fg" style="margin-bottom: 20px;">
+              <label>Estacionamento na BASE</label>
+              <div class="segmented" id="sg-teleBase">
+                <button class="seg-btn active seg-option" data-target="teleBase" data-val="0" title="Nenhum estacionamento">Nenhum</button>
+                <button class="seg-btn seg-option" data-target="teleBase" data-val="5" data-orange="true" title="Parcial (+5 pts)">Parcial (+5)</button>
+                <button class="seg-btn seg-option" data-target="teleBase" data-val="10" data-orange="true" title="Total (+10 pts)">Total (+10)</button>
+                <input type="hidden" id="teleBase" value="0">
+              </div>
+            </div>
+            <div class="fg" style="margin-bottom: 24px;">
+              <label>Bónus 2 Robôs na Base [10pt]</label>
+              <div class="segmented" id="sg-teleDouble">
+                <button class="seg-btn active seg-option" data-target="teleDouble" data-val="0" title="Sem bónus">Não</button>
+                <button class="seg-btn seg-option" data-target="teleDouble" data-val="10" data-orange="true" title="Bónus (+10 pts)">Sim (+10)</button>
+                <input type="hidden" id="teleDouble" value="0">
+              </div>
+            </div>
+            
+            <div class="panel-header" style="margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 20px;"><span class="panel-title" style="color:var(--brand-red)"><i class="fas fa-exclamation-triangle"></i> Penalidades (Fouls)</span></div>
+            <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
+              <div class="fg"><label>Minor Fouls [x10 Pts p/ Oponente]</label><div class="counter-widget"><button class="c-btn danger counter-btn" data-target="foulMinor" data-delta="-1" title="Diminuir Minor Fouls">-</button><span class="c-val" id="val-foulMinor" style="color:var(--brand-red)">0</span><button class="c-btn danger counter-btn" data-target="foulMinor" data-delta="1" title="Aumentar Minor Fouls">+</button><input type="hidden" id="foulMinor" value="0"></div></div>
+              <div class="fg"><label>Major Fouls [x30 Pts p/ Oponente]</label><div class="counter-widget"><button class="c-btn danger counter-btn" data-target="foulMajor" data-delta="-1" title="Diminuir Major Fouls">-</button><span class="c-val" id="val-foulMajor" style="color:var(--brand-red)">0</span><button class="c-btn danger counter-btn" data-target="foulMajor" data-delta="1" title="Aumentar Major Fouls">+</button><input type="hidden" id="foulMajor" value="0"></div></div>
+            </div>
+
+            <div class="fg" style="border-top: 1px solid var(--border-light); padding-top: 20px;">
+              <label>Diagnóstico da Partida</label>
+              <div class="tag-cloud" id="grp-problemas">
+                <button class="tag active-orange tag-problem" data-exclusive="true" title="Partida sem incidentes">Partida Limpa</button>
+                <button class="tag tag-problem" title="Falha mecânica">Falha Mecânica</button>
+                <button class="tag tag-problem" title="Erro de código">Erro de Código</button>
+                <button class="tag tag-problem" title="Erro do piloto">Erro de Piloto</button>
+                <button class="tag tag-problem" title="Desconexão">Desconexão</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="fab" id="btnSaveMatch"><i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida</button>
+      </section>
+
+      <section id="sec-eng" class="section">
+        
+        <div class="panel-header" style="margin-bottom: 24px; border: none; padding: 0;">
+          <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
+            <i class="fas fa-server"></i> DevOps Dashboard
+          </h2>
+          <span style="font-size:12px; color: var(--text-muted);">Controle unificado de subsistemas</span>
+        </div>
+
+        <div class="subsystem-grid" id="subsystems-grid" style="margin-bottom: 32px;">
+          
+          <div class="panel" style="padding: 20px; margin-bottom: 0;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-truck-monster"></i> DRV - Chassi</span>
+                <span class="badge-decode" id="badge-DRV" style="background:var(--text-muted); color:#fff;">Sem dados</span>
+             </div>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Drivetrain, rodas e base de movimentação.</p>
+             <div style="display:flex; gap:8px;">
+                <button class="nav-tab active" onclick="openEngForm('DRV')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
+                <button class="nav-tab" onclick="viewSubsystemHistory('DRV')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
+             </div>
           </div>
 
-          <div class="fg col-span-2">
-            <label><i class="fas fa-balance-scale text-muted"></i> Solução Aplicada & Trade-offs</label>
-            <textarea id="engTrade" placeholder="O que desenhou/programou? O que sacrificou (ex: ganhamos velocidade, perdemos força)?"></textarea>
+          <div class="panel" style="padding: 20px; margin-bottom: 0;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-satellite-dish"></i> SEN - Sensores</span>
+                <span class="badge-decode" id="badge-SEN" style="background:var(--text-muted); color:#fff;">Sem dados</span>
+             </div>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Visão computacional, odometria e IMU.</p>
+             <div style="display:flex; gap:8px;">
+                <button class="nav-tab active" onclick="openEngForm('SEN')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
+                <button class="nav-tab" onclick="viewSubsystemHistory('SEN')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
+             </div>
           </div>
 
-          <div class="fg col-span-2">
-            <label><i class="fas fa-search-plus text-muted"></i> Root Cause Analysis (RCA) / Resultados</label>
-            <textarea id="engRca" placeholder="Funcionou? O que aprendemos para a próxima versão?"></textarea>
+          <div class="panel" style="padding: 20px; margin-bottom: 0;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-claw-marks"></i> MEC - Intake</span>
+                <span class="badge-decode" id="badge-MEC_INT" style="background:var(--text-muted); color:#fff;">Sem dados</span>
+             </div>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Sistema de coleta, garra e manipulação.</p>
+             <div style="display:flex; gap:8px;">
+                <button class="nav-tab active" onclick="openEngForm('MEC_INT')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
+                <button class="nav-tab" onclick="viewSubsystemHistory('MEC_INT')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
+             </div>
           </div>
 
-          <div class="fg col-span-2">
-            <label><i class="fas fa-link text-muted"></i> Link Externo (Opcional)</label>
-            <input type="url" id="engLink" placeholder="URL do GitHub, Onshape, Documento...">
+          <div class="panel" style="padding: 20px; margin-bottom: 0;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-arrows-alt-v"></i> MEC - Elevador</span>
+                <span class="badge-decode" id="badge-MEC_ELE" style="background:var(--text-muted); color:#fff;">Sem dados</span>
+             </div>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Extensão linear, braços articulados e guias.</p>
+             <div style="display:flex; gap:8px;">
+                <button class="nav-tab active" onclick="openEngForm('MEC_ELE')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
+                <button class="nav-tab" onclick="viewSubsystemHistory('MEC_ELE')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
+             </div>
           </div>
 
-          <div class="grid-2 col-span-2">
+          <div class="panel" style="padding: 20px; margin-bottom: 0;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-laptop-code"></i> SW - Software</span>
+                <span class="badge-decode" id="badge-SW" style="background:var(--text-muted); color:#fff;">Sem dados</span>
+             </div>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Algoritmos autônomos, PIDs e tele-operação.</p>
+             <div style="display:flex; gap:8px;">
+                <button class="nav-tab active" onclick="openEngForm('SW')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
+                <button class="nav-tab" onclick="viewSubsystemHistory('SW')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
+             </div>
+          </div>
+
+          <div class="panel" style="padding: 20px; margin-bottom: 0;">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-chess-knight"></i> STR - Estratégia</span>
+                <span class="badge-decode" id="badge-STR" style="background:var(--text-muted); color:#fff;">Sem dados</span>
+             </div>
+             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Estudo de rotas, táticas de jogo e ciclo.</p>
+             <div style="display:flex; gap:8px;">
+                <button class="nav-tab active" onclick="openEngForm('STR')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
+                <button class="nav-tab" onclick="viewSubsystemHistory('STR')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
+             </div>
+          </div>
+
+        </div>
+
+        <div class="panel" id="formEngenharia" style="border-left: 4px solid var(--orange); display: none;">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fas fa-terminal"></i> Novo Commit de Engenharia</div>
+            <button class="theme-btn" id="btnCloseEngForm"><i class="fas fa-times"></i></button>
+          </div>
+          
+          <div class="grid-2">
             <div class="fg">
-              <label>Status do Ticket</label>
-              <select id="engStatus">
-                <option value="Em Prototipagem">Em Prototipagem</option>
-                <option value="Validado em Teste">Validado em Teste</option>
-                <option value="Deployed (Competição)">Deployed (Competição)</option>
-                <option value="Falhou / Rejeitado">Falhou / Rejeitado</option>
+              <label>Sub-Sistema (Módulo) <span style="color:var(--orange)">*</span></label>
+              <select id="engSys">
+                <option value="MEC_INT">MEC_INT - Intake/Garra</option>
+                <option value="MEC_ELE">MEC_ELE - Elevador/Braço</option>
+                <option value="DRV">DRV - Chassi/Drivetrain</option>
+                <option value="SEN">SEN - Sensores/Visão</option>
+                <option value="SW">SW - Software/Código</option>
+                <option value="STR">STR - Estratégia</option>
               </select>
             </div>
             <div class="fg">
+              <label>Versão da Peça/Sprint (Ex: v2.1) <span style="color:var(--orange)">*</span></label>
+              <input type="text" id="engVer" placeholder="v1.0">
+            </div>
+            <div class="fg col-span-2">
+              <label>Título do Ticket / Modificação <span style="color:var(--orange)">*</span></label>
+              <input type="text" id="engTitulo" placeholder="Ex: Substituição das rodas mecanum por omni">
+            </div>
+
+            <div class="fg col-span-2" style="margin-top: 16px;">
+              <label style="color: var(--orange);"><i class="fas fa-chart-line"></i> Telemetria & KPIs (Delta)</label>
+              <div class="telemetry-group">
+                <div class="telemetry-col" style="flex: 1.5;">
+                  <div class="tele-lbl">Métrica Avaliada</div>
+                  <input type="text" id="kpiName" class="tele-val" placeholder="Ex: Tempo de Ciclo" style="font-size: 14px; font-family: 'Inter'; font-weight: 500;">
+                </div>
+                <div class="telemetry-col">
+                  <div class="tele-lbl">Valor Antigo</div>
+                  <input type="number" id="kpiOld" class="tele-val kpi-input" placeholder="0.0" step="0.1">
+                </div>
+                <div class="telemetry-col">
+                  <div class="tele-lbl">Valor Novo</div>
+                  <input type="number" id="kpiNew" class="tele-val kpi-input" placeholder="0.0" step="0.1">
+                </div>
+                <div class="telemetry-col">
+                  <div class="tele-lbl">Evolução (Δ)</div>
+                  <input type="text" id="kpiDelta" class="tele-val" placeholder="0.0" readonly tabindex="-1">
+                </div>
+              </div>
+            </div>
+
+            <div class="fg col-span-2" style="margin-top: 16px;">
+              <label><i class="fas fa-flask text-muted"></i> Hipótese / Levantamento de Requisitos</label>
+              <textarea id="engHyp" placeholder="Qual era o problema? O que precisava de resolver?"></textarea>
+            </div>
+
+            <div class="fg col-span-2">
+              <label><i class="fas fa-balance-scale text-muted"></i> Solução Aplicada & Trade-offs</label>
+              <textarea id="engTrade" placeholder="O que desenhou/programou? O que sacrificou (ex: ganhamos velocidade, perdemos força)?"></textarea>
+            </div>
+
+            <div class="fg col-span-2">
+              <label><i class="fas fa-search-plus text-muted"></i> Root Cause Analysis (RCA) / Resultados</label>
+              <textarea id="engRca" placeholder="Funcionou? O que aprendemos para a próxima versão?"></textarea>
+            </div>
+
+            <div class="fg col-span-2">
+              <label><i class="fas fa-link text-muted"></i> Link Externo (Opcional)</label>
+              <input type="url" id="engLink" placeholder="URL do GitHub, Onshape, Documento...">
+            </div>
+
+            <div class="fg col-span-2">
               <label>Custo do Módulo (R$ / €) <i class="fas fa-coins text-muted"></i></label>
               <input type="number" id="engCost" placeholder="Para o BOM">
             </div>
-          </div>
 
-          <div class="fg col-span-2" style="margin-top: 16px;">
-            <button class="nav-tab active" id="btnSaveEng" style="background:var(--text-main); color:var(--bg-body); padding:14px; font-weight: 700; width: 100%; border-radius: 8px; font-family: 'JetBrains Mono';">
-              <i class="fas fa-code-commit"></i> ENVIAR PARA A NUVEM
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; flex-wrap: wrap; gap: 10px;">
-        <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
-          <i class="fas fa-server"></i> Engineering DB
-        </h2>
-        <button class="nav-tab active" id="btnOpenEngForm" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-plus"></i> Novo Commit</button>
-      </div>
-
-      <div id="engFeed" class="timeline">
-      </div>
-    </section>
-
-    <section id="sec-global-eng" class="section">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fas fa-globe"></i> Histórico Global de Engenharia</span>
-          <span style="font-size:12px; color: var(--text-muted);">Todos os commits de todas as versões</span>
-        </div>
-        <div id="globalEngFeed" class="timeline">
-          </div>
-      </div>
-    </section>
-    <section id="sec-robot" class="section">
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title"><i class="fas fa-cubes"></i> Bill of Materials & Configuração</div>
-          <button class="nav-tab active" id="btnAutoFillBlueprint" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Puxar Dados da Nuvem</button>
-        </div>
-
-        <div class="grid-2" style="max-width: 500px; margin: 0 auto 30px auto;">
-          <div class="fg">
-            <label style="text-align: center; justify-content: center;">Nome do Robô</label>
-            <input type="text" id="robotName" placeholder="Ex: METALINA" value="METALINA" style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--orange);">
-          </div>
-          <div class="fg">
-            <label style="text-align: center; justify-content: center;">Versão a ser criada</label>
-            <input type="text" id="robotVersion" placeholder="Ex: v2.0" style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--orange);">
-          </div>
-        </div>
-
-        <div class="robot-map-container">
-          <div class="fg" style="gap: 40px;">
-            <div class="blueprint-card">
-              <div class="blueprint-header">DRV - Chassi</div>
-              <div class="blueprint-body bp-input-group">
-                <input type="text" id="bp-drv" class="blueprint-input bp-ver" placeholder="Automático">
-                <input type="number" id="bp-drv-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
-              </div>
-            </div>
-            <div class="blueprint-card">
-              <div class="blueprint-header">SEN - Sensores</div>
-              <div class="blueprint-body bp-input-group">
-                <input type="text" id="bp-sen" class="blueprint-input bp-ver" placeholder="Automático">
-                <input type="number" id="bp-sen-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
-              </div>
-            </div>
-          </div>
-
-          <div class="robot-center">
-            <img src="Versão.svg" alt="Robô CAD" class="robot-image" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Robot_icon.svg/200px-Robot_icon.svg.png'; this.style.opacity='0.2';">
-            
-            <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--orange); margin-top: 10px; width: 100%;">
-              <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Custo Total (BOM)</div>
-              <div style="font-family: 'JetBrains Mono'; font-size: 24px; font-weight: 700; color: var(--orange);" id="bomTotal">0.00</div>
-            </div>
-
-            <div style="display: flex; gap: 8px; margin-top: 10px; width: 100%;">
-              <div class="fg" style="flex:1;">
-                <label style="font-size:10px; text-transform:none;">Peso (Máx 19kg)</label>
-                <input type="number" id="robotWeight" placeholder="kg" class="blueprint-input" style="border: 1px solid var(--border-light); font-size: 14px;">
-              </div>
-              <div class="fg" style="flex:1;">
-                <label style="font-size:10px; text-transform:none;">Sizing (18"x18")</label>
-                <button class="seg-btn" id="btnSize" style="height: 100%; border: 1px solid var(--border-light);" title="Clique para marcar como aprovado">Aprovado <i class="fas fa-check"></i></button>
-              </div>
-            </div>
-          </div>
-
-          <div class="fg" style="gap: 40px;">
-            <div class="blueprint-card">
-              <div class="blueprint-header">MEC - Intake/Garra</div>
-              <div class="blueprint-body bp-input-group">
-                <input type="text" id="bp-mec1" class="blueprint-input bp-ver" placeholder="Automático">
-                <input type="number" id="bp-mec1-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
-              </div>
-            </div>
-            <div class="blueprint-card">
-              <div class="blueprint-header">MEC - Elevador</div>
-              <div class="blueprint-body bp-input-group">
-                <input type="text" id="bp-mec2" class="blueprint-input bp-ver" placeholder="Automático">
-                <input type="number" id="bp-mec2-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
-              </div>
+            <div class="fg col-span-2" style="margin-top: 16px;">
+              <button class="nav-tab active" id="btnSaveEng" style="background:var(--text-main); color:var(--bg-body); padding:14px; font-weight: 700; width: 100%; border-radius: 8px; font-family: 'JetBrains Mono'; transition: opacity 0.2s;">
+                <i class="fas fa-code-commit"></i> ENVIAR PARA A NUVEM
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="blueprint-card" style="max-width: 400px; margin: 40px auto 0 auto;">
-          <div class="blueprint-header" style="background: var(--text-main); color: var(--white-pure);">SW - Software / Código</div>
-          <div class="blueprint-body"><input type="text" id="bp-sw" class="blueprint-input" placeholder="Tag do Commit (ex: v1.9.4)" style="text-align: center;"></div>
+        <div class="panel" id="feedPanel">
+          <div class="panel-header">
+             <span class="panel-title" id="feedTitle"><i class="fas fa-list"></i> Histórico Recente (Versão Ativa)</span>
+             <button class="theme-btn" id="btnResetFeed" style="display:none; width:auto; padding: 0 10px; font-size:12px; font-family:'JetBrains Mono'; background:var(--bg-input); color:var(--text-main); border-radius:4px;"><i class="fas fa-times"></i> Limpar Filtro Global</button>
+          </div>
+          <div id="engFeed" class="timeline">
+          </div>
         </div>
 
-      </div>
+      </section>
 
-      <button class="fab" id="btnSaveBlueprint"><i class="fas fa-save"></i> Gravar Nova Versão</button>
-    </section>
+      <section id="sec-robot" class="section">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fas fa-cubes"></i> Bill of Materials & Configuração</div>
+            <button class="nav-tab active" id="btnAutoFillBlueprint" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Puxar Última Versão da Nuvem</button>
+          </div>
 
-    <section id="sec-compare" class="section">
-      <div class="panel">
-        <div class="panel-header"><span class="panel-title"><i class="fas fa-not-equal"></i> Análise Comparativa de Versões</span></div>
-        <div class="grid-2">
+          <div class="grid-2" style="max-width: 500px; margin: 0 auto 30px auto;">
             <div class="fg">
-              <label>Robô / Blueprint A</label>
-              <select id="compA"><option value="">Selecione um Blueprint...</option></select>
+              <label style="text-align: center; justify-content: center;">Nome do Robô</label>
+              <input type="text" id="robotName" placeholder="Ex: METALINA" value="METALINA" style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--orange);">
             </div>
             <div class="fg">
-              <label>Robô / Blueprint B</label>
-              <select id="compB"><option value="">Selecione um Blueprint...</option></select>
+              <label style="text-align: center; justify-content: center;">Versão a ser criada</label>
+              <input type="text" id="robotVersion" placeholder="Ex: v2.0" style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--orange);">
             </div>
-        </div>
-        
-        <div id="compareResults" style="margin-top: 30px; overflow-x: auto;">
-           <p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução do robô.</p>
-        </div>
-      </div>
-    </section>
+          </div>
 
-    <section id="sec-charts" class="section">
-      <div class="panel-header" style="margin-bottom: 24px; border: none; padding: 0;">
-        <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
-          <i class="fas fa-chart-pie" style="color:var(--orange);"></i> Analytics da Versão Ativa
-        </h2>
-        <button class="nav-tab active" id="btnRefreshCharts" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Atualizar Dados</button>
-      </div>
+          <div class="robot-map-container">
+            <div class="fg" style="gap: 40px;">
+              <div class="blueprint-card">
+                <div class="blueprint-header">DRV - Chassi</div>
+                <div class="blueprint-body bp-input-group">
+                  <input type="text" id="bp-drv" class="blueprint-input bp-ver" placeholder="Automático">
+                  <input type="number" id="bp-drv-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
+                </div>
+              </div>
+              <div class="blueprint-card">
+                <div class="blueprint-header">SEN - Sensores</div>
+                <div class="blueprint-body bp-input-group">
+                  <input type="text" id="bp-sen" class="blueprint-input bp-ver" placeholder="Automático">
+                  <input type="number" id="bp-sen-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
+                </div>
+              </div>
+            </div>
 
-      <div class="hud-grid" style="margin-bottom: 24px;">
-        <div class="hud-card">
-          <span class="hud-lbl">Média Total</span>
-          <span class="hud-val" id="avgTotal">0</span>
-        </div>
-        <div class="hud-card">
-          <span class="hud-lbl">Melhor Partida</span>
-          <span class="hud-val" id="bestMatch">0</span>
-        </div>
-        <div class="hud-card">
-          <span class="hud-lbl">Consistência (CV)</span>
-          <span class="hud-val" id="consistencyCV">--%</span>
-          <span style="font-size:11px; color: var(--text-muted);">Menor é melhor</span>
-        </div>
-        <div class="hud-card">
-          <span class="hud-lbl">Fiabilidade</span>
-          <span class="hud-val" id="reliabilityRate">--%</span>
-          <span style="font-size:11px; color: var(--text-muted);">Partidas limpas</span>
-        </div>
-      </div>
+            <div class="robot-center">
+              <img src="Versão.svg" alt="Robô CAD" class="robot-image" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Robot_icon.svg/200px-Robot_icon.svg.png'; this.style.opacity='0.2';">
+              
+              <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--orange); margin-top: 10px; width: 100%;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Custo Total (BOM)</div>
+                <div style="font-family: 'JetBrains Mono'; font-size: 24px; font-weight: 700; color: var(--orange);" id="bomTotal">0.00</div>
+              </div>
 
-      <div class="charts-grid">
-        <div class="chart-card col-span-2">
-          <h3>📈 Histórico de Pontuação</h3>
-          <div class="chart-wrapper">
-            <canvas id="scoreHistoryChart"></canvas>
+              <div style="display: flex; gap: 8px; margin-top: 10px; width: 100%;">
+                <div class="fg" style="flex:1;">
+                  <label style="font-size:10px; text-transform:none;">Peso (Máx 19kg)</label>
+                  <input type="number" id="robotWeight" placeholder="kg" class="blueprint-input" style="border: 1px solid var(--border-light); font-size: 14px;">
+                </div>
+                <div class="fg" style="flex:1;">
+                  <label style="font-size:10px; text-transform:none;">Sizing (18"x18")</label>
+                  <button class="seg-btn" id="btnSize" style="height: 100%; border: 1px solid var(--border-light);" title="Clique para marcar como aprovado">Aprovado <i class="fas fa-check"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="fg" style="gap: 40px;">
+              <div class="blueprint-card">
+                <div class="blueprint-header">MEC - Intake/Garra</div>
+                <div class="blueprint-body bp-input-group">
+                  <input type="text" id="bp-mec1" class="blueprint-input bp-ver" placeholder="Automático">
+                  <input type="number" id="bp-mec1-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
+                </div>
+              </div>
+              <div class="blueprint-card">
+                <div class="blueprint-header">MEC - Elevador</div>
+                <div class="blueprint-body bp-input-group">
+                  <input type="text" id="bp-mec2" class="blueprint-input bp-ver" placeholder="Automático">
+                  <input type="number" id="bp-mec2-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blueprint-card" style="max-width: 400px; margin: 40px auto 0 auto;">
+            <div class="blueprint-header" style="background: var(--text-main); color: var(--white-pure);">SW - Software / Código</div>
+            <div class="blueprint-body"><input type="text" id="bp-sw" class="blueprint-input" placeholder="Tag do Commit (ex: v1.9.4)" style="text-align: center;"></div>
+          </div>
+
+        </div>
+
+        <button class="fab" id="btnSaveBlueprint"><i class="fas fa-save"></i> Gravar Nova Versão</button>
+      </section>
+
+      <section id="sec-compare" class="section">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title"><i class="fas fa-not-equal"></i> Análise Comparativa de Versões</span></div>
+          <div class="grid-2">
+              <div class="fg">
+                <label>Robô / Blueprint A</label>
+                <select id="compA"><option value="">Selecione um Blueprint...</option></select>
+              </div>
+              <div class="fg">
+                <label>Robô / Blueprint B</label>
+                <select id="compB"><option value="">Selecione um Blueprint...</option></select>
+              </div>
+          </div>
+          
+          <div id="compareResults" style="margin-top: 30px; overflow-x: auto;">
+             <p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução do robô.</p>
           </div>
         </div>
-        
-        <div class="chart-card">
-          <h3>📊 Média Auto vs Tele-op</h3>
-          <div class="chart-wrapper">
-            <canvas id="avgDistributionChart"></canvas>
+      </section>
+
+      <section id="sec-charts" class="section">
+        <div class="panel-header" style="margin-bottom: 24px; border: none; padding: 0;">
+          <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
+            <i class="fas fa-chart-pie" style="color:var(--orange);"></i> Analytics da Versão Ativa
+          </h2>
+          <button class="nav-tab active" id="btnRefreshCharts" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Atualizar Dados</button>
+        </div>
+
+        <div class="hud-grid" style="margin-bottom: 24px;">
+          <div class="hud-card">
+            <span class="hud-lbl">Média Total</span>
+            <span class="hud-val" id="avgTotal">0</span>
           </div>
-        </div>
-        
-        <div class="chart-card">
-          <h3>🎯 Eficiência Global vs Meta</h3>
-          <div class="chart-wrapper">
-            <canvas id="efficiencyGaugeChart"></canvas>
+          <div class="hud-card">
+            <span class="hud-lbl">Melhor Partida</span>
+            <span class="hud-val" id="bestMatch">0</span>
           </div>
-        </div>
-
-        <div class="chart-card">
-          <h3>🚨 Análise de Falhas</h3>
-          <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Frequência de problemas nesta versão</p>
-          <div class="chart-wrapper" id="failuresWrapper">
-            <canvas id="failuresChart"></canvas>
+          <div class="hud-card">
+            <span class="hud-lbl">Consistência (CV)</span>
+            <span class="hud-val" id="consistencyCV">--%</span>
+            <span style="font-size:11px; color: var(--text-muted);">Menor é melhor</span>
           </div>
-        </div>
-
-        <div class="chart-card">
-          <h3>⚙️ Distribuição de Esforço (DevOps)</h3>
-          <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Commits registados por Subsistema</p>
-          <div class="chart-wrapper">
-            <canvas id="devOpsEffortChart"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <h3>🕸️ Perfil de Desempenho do Robô</h3>
-          <div class="chart-wrapper">
-            <canvas id="robotProfileRadarChart"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <h3>📈 Correlação Auto vs Total</h3>
-          <div class="chart-wrapper">
-            <canvas id="scatterAutoTotalChart"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-card">
-          <h3>🥧 Contribuição por Ação</h3>
-          <div class="chart-wrapper">
-            <canvas id="contributionPieChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-top: 32px;">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fas fa-list"></i> Partidas Registadas (Versão Ativa)</span>
-          <span style="font-size:12px; color: var(--text-muted);">Clique no ícone para excluir</span>
-        </div>
-        <div class="matches-table-container">
-          <table class="matches-table" id="matchesTable">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Pilotos</th>
-                <th>Auto</th>
-                <th>Tele</th>
-                <th>Total</th>
-                <th>Fouls</th>
-                <th>Efic.</th>
-                <th>Problemas</th>
-                <th style="width:40px;"></th>
-              </tr>
-            </thead>
-            <tbody id="matchesTableBody">
-              <tr><td colspan="9" style="text-align:center; padding: 30px;">A carregar partidas...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section id="sec-help" class="section">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title"><i class="fas fa-book"></i> Manual de Operações (Mission Control)</span>
-        </div>
-
-        <div style="text-align: center; margin-bottom: 40px;">
-          <h3 style="font-size: 24px; color: var(--text-main); margin-bottom: 16px;">Arquitetura Baseada em Versões</h3>
-          <p style="color: var(--text-muted); max-width: 750px; margin: 0 auto 30px auto; font-size: 15px;">
-            O Mission Control funciona com um sistema de <strong>Entidades Hierárquicas</strong>. Isto significa que tudo o que você regista (uma partida, uma falha, uma nova peça) está "amarrado" a uma <strong>Versão Específica</strong> do robô. Assim, você consegue provar com dados exatos se a "Garra v2" melhorou a eficiência em relação à "Garra v1".
-          </p>
-
-          <div style="background: #ffffff; padding: 24px; border-radius: var(--radius-md); border: 2px solid var(--border-light); display: inline-block; max-width: 100%; box-shadow: var(--shadow-sm);">
-            <img src="diagrama.svg" alt="Fluxograma da Árvore de Dados do Robô" style="max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: var(--radius-sm);">
-            <div style="font-size: 11px; color: #6b7280; margin-top: 16px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1px;">Estrutura da Árvore de Dados no Firebase</div>
+          <div class="hud-card">
+            <span class="hud-lbl">Fiabilidade</span>
+            <span class="hud-val" id="reliabilityRate">--%</span>
+            <span style="font-size:11px; color: var(--text-muted);">Partidas limpas</span>
           </div>
         </div>
 
-        <div class="help-grid">
-          <div class="help-card">
-            <div class="help-icon"><i class="fas fa-sitemap"></i></div>
-            <h3>1. O Workflow Correto</h3>
-            <p>Siga este ciclo de desenvolvimento para manter o seu banco de dados sempre preciso e limpo:</p>
-            <ul>
-              <li><i class="fas fa-arrow-right"></i> <strong>Blueprint:</strong> Comece por criar uma Nova Versão do Robô (Ex: "v1.0").</li>
-              <li><i class="fas fa-arrow-right"></i> <strong>DevOps:</strong> Registe as modificações e as peças que testou nessa versão.</li>
-              <li><i class="fas fa-arrow-right"></i> <strong>Partidas:</strong> Jogue! Os pontos vão diretamente para a versão ativa no topo da tela.</li>
-              <li><i class="fas fa-arrow-right"></i> <strong>Analytics:</strong> Veja os gráficos para saber se precisa criar uma "v1.1".</li>
-            </ul>
+        <div class="charts-grid">
+          <div class="chart-card col-span-2">
+            <h3>📈 Histórico de Pontuação</h3>
+            <div class="chart-wrapper">
+              <canvas id="scoreHistoryChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-card">
+            <h3>📊 Média Auto vs Tele-op</h3>
+            <div class="chart-wrapper">
+              <canvas id="avgDistributionChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-card">
+            <h3>🎯 Eficiência Global vs Meta</h3>
+            <div class="chart-wrapper">
+              <canvas id="efficiencyGaugeChart"></canvas>
+            </div>
           </div>
 
-          <div class="help-card">
-            <div class="help-icon"><i class="fas fa-globe"></i></div>
-            <h3>2. O Seletor Global (Topo)</h3>
-            <p>O menu suspenso no topo é a "Máquina do Tempo" do sistema.</p>
-            <ul>
-              <li><i class="fas fa-exclamation-circle"></i> Tudo o que for salvo (partidas ou engenharia) será guardado <strong>apenas</strong> na versão que estiver selecionada lá em cima.</li>
-              <li><i class="fas fa-chart-line"></i> Troque a versão no seletor e todos os gráficos e tabelas atualizarão magicamente para refletir o passado.</li>
-            </ul>
+          <div class="chart-card">
+            <h3>🚨 Análise de Falhas</h3>
+            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Frequência de problemas nesta versão</p>
+            <div class="chart-wrapper" id="failuresWrapper">
+              <canvas id="failuresChart"></canvas>
+            </div>
           </div>
 
-          <div class="help-card">
-            <div class="help-icon"><i class="fas fa-cloud-download-alt"></i></div>
-            <h3>3. Magia do "Puxar Deployed"</h3>
-            <p>Na aba Blueprint, o botão "Puxar Dados da Nuvem" constrói o seu robô automaticamente.</p>
-            <ul>
-              <li><i class="fas fa-search"></i> Ele varre <strong>toda a base de dados</strong> global de engenharia.</li>
-              <li><i class="fas fa-filter"></i> Ignora os testes e puxa <strong>apenas</strong> as peças marcadas com o status <code>Deployed (Competição)</code>.</li>
-              <li><i class="fas fa-magic"></i> Assim, você não precisa digitar nada para montar o BOM da nova versão.</li>
-            </ul>
+          <div class="chart-card">
+            <h3>⚙️ Distribuição de Esforço (DevOps)</h3>
+            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Commits registados por Subsistema</p>
+            <div class="chart-wrapper">
+              <canvas id="devOpsEffortChart"></canvas>
+            </div>
           </div>
 
-          <div class="help-card">
-            <div class="help-icon"><i class="fas fa-balance-scale-right"></i></div>
-            <h3>4. Compare (Comprovar Evolução)</h3>
-            <p>Excelente para justificar escolhas de design para os juízes do prêmio Innovate/Design.</p>
-            <ul>
-              <li><i class="fas fa-eye"></i> Selecione a versão antiga (A) e a nova (B).</li>
-              <li><i class="fas fa-check"></i> O painel destaca em <span style="color:var(--brand-tele); font-weight:bold;">verde</span> os atributos que melhoraram (ex: ficou mais leve) e em <span style="color:var(--brand-red); font-weight:bold;">vermelho</span> o que piorou (ex: ficou mais caro).</li>
-            </ul>
+          <div class="chart-card">
+            <h3>🕸️ Perfil de Desempenho do Robô</h3>
+            <div class="chart-wrapper">
+              <canvas id="robotProfileRadarChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3>📈 Correlação Auto vs Total</h3>
+            <div class="chart-wrapper">
+              <canvas id="scatterAutoTotalChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h3>🥧 Contribuição por Ação</h3>
+            <div class="chart-wrapper">
+              <canvas id="contributionPieChart"></canvas>
+            </div>
           </div>
         </div>
 
-        <div class="help-tip" style="margin-top: 32px; display: flex; gap: 16px; align-items: flex-start;">
-          <i class="fas fa-lightbulb" style="font-size: 24px; color: var(--orange); margin-top: 4px;"></i>
-          <div>
-            <strong style="display: block; margin-bottom: 4px; font-size: 14px; color: var(--text-main);">Dica de Ouro do MetalLab:</strong> 
-            <span style="color: var(--text-main);">Nunca misture partidas de duas configurações mecânicas diferentes na mesma versão. Se você mudou a relação de engrenagens do braço, vá no Blueprint, crie a versão "v1.2" e grave as novas partidas lá. Isso garante que as estatísticas do Analytics não fiquem contaminadas!</span>
+        <div class="panel" style="margin-top: 32px;">
+          <div class="panel-header">
+            <span class="panel-title"><i class="fas fa-list"></i> Partidas Registadas (Versão Ativa)</span>
+            <span style="font-size:12px; color: var(--text-muted);">Clique no ícone para excluir</span>
+          </div>
+          <div class="matches-table-container">
+            <table class="matches-table" id="matchesTable">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Pilotos</th>
+                  <th>Auto</th>
+                  <th>Tele</th>
+                  <th>Total</th>
+                  <th>Fouls</th>
+                  <th>Efic.</th>
+                  <th>Problemas</th>
+                  <th style="width:40px;"></th>
+                </tr>
+              </thead>
+              <tbody id="matchesTableBody">
+                <tr><td colspan="9" style="text-align:center; padding: 30px;">A carregar partidas...</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
+      </section>
 
-      </div>
-    </section>
+      <section id="sec-help" class="section">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title"><i class="fas fa-book"></i> Manual de Operações (Mission Control)</span>
+          </div>
 
-  </main>
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h3 style="font-size: 24px; color: var(--text-main); margin-bottom: 16px;">Arquitetura Baseada em Versões</h3>
+            <p style="color: var(--text-muted); max-width: 750px; margin: 0 auto 30px auto; font-size: 15px;">
+              O Mission Control funciona com um sistema de <strong>Entidades Hierárquicas</strong>. Isto significa que tudo o que você regista (uma partida, uma falha, uma nova peça) está "amarrado" a uma <strong>Versão Específica</strong> do robô. Assim, você consegue provar com dados exatos se a "Garra v2" melhorou a eficiência em relação à "Garra v1".
+            </p>
+          </div>
 
-  <div class="toast-container" id="toastContainer"></div>
+          <div class="help-grid">
+            <div class="help-card">
+              <div class="help-icon"><i class="fas fa-sitemap"></i></div>
+              <h3>1. O Workflow Correto</h3>
+              <p>Siga este ciclo de desenvolvimento para manter o seu banco de dados sempre preciso e limpo:</p>
+              <ul>
+                <li><i class="fas fa-arrow-right"></i> <strong>Blueprint:</strong> Comece por criar uma Nova Versão do Robô (Ex: "v1.0").</li>
+                <li><i class="fas fa-arrow-right"></i> <strong>DevOps:</strong> Registe as modificações e as peças que testou nessa versão.</li>
+                <li><i class="fas fa-arrow-right"></i> <strong>Partidas:</strong> Jogue! Os pontos vão diretamente para a versão ativa no topo da tela.</li>
+                <li><i class="fas fa-arrow-right"></i> <strong>Analytics:</strong> Veja os gráficos para saber se precisa criar uma "v1.1".</li>
+              </ul>
+            </div>
+
+            <div class="help-card">
+              <div class="help-icon"><i class="fas fa-globe"></i></div>
+              <h3>2. O Seletor Global (Topo)</h3>
+              <p>O menu suspenso no topo é a "Máquina do Tempo" do sistema.</p>
+              <ul>
+                <li><i class="fas fa-exclamation-circle"></i> Tudo o que for salvo (partidas ou engenharia) será guardado <strong>apenas</strong> na versão que estiver selecionada lá em cima.</li>
+                <li><i class="fas fa-chart-line"></i> Troque a versão no seletor e todos os gráficos e tabelas atualizarão magicamente para refletir o passado.</li>
+              </ul>
+            </div>
+
+            <div class="help-card">
+              <div class="help-icon"><i class="fas fa-server"></i></div>
+              <h3>3. Dashboard de Subsistemas</h3>
+              <p>Na aba DevOps Log, você tem um controle centralizado de cada parte do robô.</p>
+              <ul>
+                <li><i class="fas fa-search"></i> Você vê imediatamente em qual versão cada subsistema está no momento atual.</li>
+                <li><i class="fas fa-history"></i> Clique em "Histórico" de um Card para buscar <strong>todas as alterações</strong> que aquele módulo sofreu desde o nascimento do robô.</li>
+              </ul>
+            </div>
+
+            <div class="help-card">
+              <div class="help-icon"><i class="fas fa-balance-scale-right"></i></div>
+              <h3>4. Compare (Comprovar Evolução)</h3>
+              <p>Excelente para justificar escolhas de design para os juízes do prêmio Innovate/Design.</p>
+              <ul>
+                <li><i class="fas fa-eye"></i> Selecione a versão antiga (A) e a nova (B).</li>
+                <li><i class="fas fa-check"></i> O painel destaca em <span style="color:var(--brand-tele); font-weight:bold;">verde</span> os atributos que melhoraram (ex: ficou mais leve) e em <span style="color:var(--brand-red); font-weight:bold;">vermelho</span> o que piorou (ex: ficou mais caro).</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="help-tip" style="margin-top: 32px; display: flex; gap: 16px; align-items: flex-start;">
+            <i class="fas fa-lightbulb" style="font-size: 24px; color: var(--orange); margin-top: 4px;"></i>
+            <div>
+              <strong style="display: block; margin-bottom: 4px; font-size: 14px; color: var(--text-main);">Dica de Ouro do MetalLab:</strong> 
+              <span style="color: var(--text-main);">Nunca misture partidas de duas configurações mecânicas diferentes na mesma versão. Se você mudou a relação de engrenagens do braço, vá no Blueprint, crie a versão "v1.2" e grave as novas partidas lá. Isso garante que as estatísticas do Analytics não fiquem contaminadas!</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div> <div class="toast-container" id="toastContainer"></div>
 
   <script type="module">
+    // 1. IMPORTAÇÕES ATUALIZADAS COM AUTH
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, setDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB6ynxAi14VHRWTro2Rm3VQAQS9rn2CtmE",
@@ -800,8 +905,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app); // INICIALIZA O AUTH
 
-    // Variáveis Globais da Nova Arquitetura
     const ROBO_ATIVO = "metal_lab_principal"; 
     let versaoAtiva = "v1.0 - Base Build";
 
@@ -812,9 +917,17 @@
     let tagsProblemas = ['Partida Limpa'];
     let robotVersionsArray = [];
     let formEngOpen = false;
+    let isViewingGlobalHistory = false;
+    let dbInitialized = false;
 
     let unsubscribePartidas = null;
     let unsubscribeEngenharia = null;
+    let unsubscribeVersoes = null;
+
+    // --- ELEMENTOS DE UI DE LOGIN ---
+    const loginScreen = document.getElementById('login-screen');
+    const appContainer = document.getElementById('app-container');
+    const userBadge = document.getElementById('userBadge');
 
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -827,6 +940,62 @@
       container.appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
     }
+
+    // --- SISTEMA DE AUTENTICAÇÃO ---
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Logado
+        loginScreen.classList.add('hidden');
+        appContainer.style.display = 'block';
+        userBadge.innerText = user.email.split('@')[0];
+        
+        // Só inicializa o banco de dados SE o usuário estiver logado
+        if(!dbInitialized) {
+          initDatabaseListeners();
+          dbInitialized = true;
+          showToast(`Sessão iniciada como ${user.email.split('@')[0]}`, 'success');
+        }
+      } else {
+        // Deslogado
+        loginScreen.classList.remove('hidden');
+        appContainer.style.display = 'none';
+        userBadge.innerText = '';
+        
+        // Desliga listeners para não dar erro de permissão se deslogar
+        if(unsubscribeVersoes) unsubscribeVersoes();
+        if(unsubscribePartidas) unsubscribePartidas();
+        if(unsubscribeEngenharia) unsubscribeEngenharia();
+        dbInitialized = false;
+      }
+    });
+
+    document.getElementById('btnLogin').addEventListener('click', async (e) => {
+      const email = document.getElementById('emailInput').value;
+      const senha = document.getElementById('senhaInput').value;
+      const btn = e.currentTarget;
+
+      if(!email || !senha) { showToast('Preencha e-mail e senha!', 'warning'); return; }
+
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> VERIFICANDO...';
+      btn.disabled = true;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+      } catch (error) {
+        console.error(error);
+        showToast('Credenciais inválidas.', 'error');
+      } finally {
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> AUTENTICAR';
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+      if(confirm("Encerrar sessão no Mission Control?")) {
+        try { await signOut(auth); } 
+        catch (error) { showToast('Erro ao sair.', 'error'); }
+      }
+    });
 
     // Tema
     document.getElementById('themeToggle').addEventListener('click', () => {
@@ -858,13 +1027,11 @@
           setTimeout(refreshCharts, 100); 
       } else if (tabId === 'compare') {
           renderCompare();
-      } else if (tabId === 'global-eng') {
-          renderGlobalEngFeed(); 
       }
     };
 
     document.querySelectorAll('.nav-tab[data-target-tab]').forEach(btn => {
-      btn.addEventListener('click', (e) => switchTab(e.target.getAttribute('data-target-tab')));
+      btn.addEventListener('click', (e) => switchTab(e.currentTarget.getAttribute('data-target-tab')));
     });
 
     const updateMatchDropdown = () => {
@@ -891,43 +1058,46 @@
       if(valB) compB.value = valB;
     };
 
-    onSnapshot(collection(db, "robos", ROBO_ATIVO, "versoes"), (snapshot) => {
-      const select = document.getElementById('globalVersionSelect');
-      const currentVal = select.value;
-      
-      select.innerHTML = ''; 
-      blueprintsData = [];
-      robotVersionsArray = [];
+    // --- ENCAPSULADO PARA RODAR SÓ APÓS LOGIN ---
+    function initDatabaseListeners() {
+      unsubscribeVersoes = onSnapshot(collection(db, "robos", ROBO_ATIVO, "versoes"), (snapshot) => {
+        const select = document.getElementById('globalVersionSelect');
+        const currentVal = select.value;
+        
+        select.innerHTML = ''; 
+        blueprintsData = [];
+        robotVersionsArray = [];
 
-      if (snapshot.empty) {
-        const opt = document.createElement('option');
-        opt.value = "v1.0 - Base Build"; opt.text = "v1.0 - Base Build";
-        select.appendChild(opt);
-        robotVersionsArray.push("v1.0 - Base Build");
-      } else {
-        snapshot.forEach((docItem) => {
-          const data = docItem.data();
-          blueprintsData.push({ id: docItem.id, ...data });
-          robotVersionsArray.push(docItem.id);
-          
-          const option = document.createElement('option');
-          option.value = docItem.id;
-          option.text = docItem.id;
-          select.appendChild(option);
-        });
-      }
+        if (snapshot.empty) {
+          const opt = document.createElement('option');
+          opt.value = "v1.0 - Base Build"; opt.text = "v1.0 - Base Build";
+          select.appendChild(opt);
+          robotVersionsArray.push("v1.0 - Base Build");
+        } else {
+          snapshot.forEach((docItem) => {
+            const data = docItem.data();
+            blueprintsData.push({ id: docItem.id, ...data });
+            robotVersionsArray.push(docItem.id);
+            
+            const option = document.createElement('option');
+            option.value = docItem.id;
+            option.text = docItem.id;
+            select.appendChild(option);
+          });
+        }
 
-      if(robotVersionsArray.includes(currentVal)) {
-          select.value = currentVal;
-      } else if (select.options.length > 0) {
-          select.value = select.options[0].value;
-      }
-      versaoAtiva = select.value;
+        if(robotVersionsArray.includes(currentVal)) {
+            select.value = currentVal;
+        } else if (select.options.length > 0) {
+            select.value = select.options[0].value;
+        }
+        versaoAtiva = select.value;
 
-      updateMatchDropdown();
-      updateCompareDropdowns();
-      iniciarEscutasDaVersao(); 
-    });
+        updateMatchDropdown();
+        updateCompareDropdowns();
+        iniciarEscutasDaVersao(); 
+      });
+    }
 
     document.getElementById('globalVersionSelect').addEventListener('change', (e) => {
         versaoAtiva = e.target.value;
@@ -954,7 +1124,12 @@
       unsubscribeEngenharia = onSnapshot(query(pathEng, orderBy("timestamp", "desc")), (snap) => {
         engLogsData = [];
         snap.forEach(docItem => engLogsData.push({ docId: docItem.id, ...docItem.data() }));
-        renderEngFeed();
+        
+        updateSubsystemsBadges(); 
+
+        if(!isViewingGlobalHistory) {
+           renderFilteredEngFeed(engLogsData, false);
+        }
       });
     }
 
@@ -1035,10 +1210,13 @@
       });
     });
 
-    document.getElementById('btnSaveMatch').addEventListener('click', async () => {
+    // PRECAUÇÃO: SALVAR PARTIDA
+    document.getElementById('btnSaveMatch').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      if (btn.disabled) return; 
       if(!versaoAtiva) { showToast('Sem versão ativa configurada!', 'error'); return; }
 
-      const btn = document.getElementById('btnSaveMatch');
+      btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A sincronizar...'; 
       btn.classList.add('loading');
 
@@ -1099,10 +1277,13 @@
           document.querySelector('#grp-problemas .tag[data-exclusive="true"]').classList.add('active-orange');
           
           calcMatchScore(); window.scrollTo(0,0);
+          btn.disabled = false;
         }, 1500);
-      } catch (e) { 
-        console.error(e); showToast('Erro ao gravar na Nuvem.', 'error'); 
-        btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading'); 
+      } catch (err) { 
+        console.error(err); showToast('Erro ao gravar na Nuvem.', 'error'); 
+        btn.innerHTML = '<i class="fas fa-times"></i> Erro'; 
+        btn.classList.remove('loading'); 
+        btn.disabled = false; 
       }
     });
 
@@ -1114,12 +1295,88 @@
       } catch(e) { console.error(e); showToast('Erro ao excluir.', 'error'); }
     };
 
-    const toggleEngForm = () => { 
-      formEngOpen = !formEngOpen; 
-      document.getElementById('formEngenharia').style.display = formEngOpen ? 'block' : 'none'; 
+    window.openEngForm = (sysId) => {
+        document.getElementById('engSys').value = sysId;
+        document.getElementById('formEngenharia').style.display = 'block';
+        formEngOpen = true;
+        document.getElementById('formEngenharia').scrollIntoView({behavior: 'smooth', block: 'start'});
     };
-    document.getElementById('btnOpenEngForm').addEventListener('click', toggleEngForm);
-    document.getElementById('btnCloseEngForm').addEventListener('click', toggleEngForm);
+
+    document.getElementById('btnCloseEngForm').addEventListener('click', () => {
+        document.getElementById('formEngenharia').style.display = 'none';
+        formEngOpen = false;
+    });
+
+    window.updateSubsystemsBadges = async () => {
+        let latest = { 'DRV': 'v?', 'SEN': 'v?', 'MEC_INT': 'v?', 'MEC_ELE': 'v?', 'SW': 'v?', 'STR': 'v?' };
+        let latestTime = { 'DRV': 0, 'SEN': 0, 'MEC_INT': 0, 'MEC_ELE': 0, 'SW': 0, 'STR': 0 };
+
+        try {
+            for (let v of robotVersionsArray) {
+                const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
+                snap.forEach(d => {
+                    let data = d.data();
+                    let sys = data.sys;
+                    if (sys && latestTime[sys] !== undefined) {
+                        let ts = data.timestamp ? data.timestamp.toMillis() : 0;
+                        if (ts > latestTime[sys]) {
+                            latestTime[sys] = ts;
+                            latest[sys] = data.versao || 'v?';
+                        }
+                    }
+                });
+            }
+
+            for (let sys in latest) {
+                const badge = document.getElementById('badge-' + sys);
+                if (badge) {
+                    badge.innerText = latest[sys] !== 'v?' ? latest[sys] : 'Sem dados';
+                    if (latest[sys] !== 'v?') {
+                        badge.style.background = 'var(--orange)';
+                        badge.style.color = '#000';
+                    } else {
+                        badge.style.background = 'var(--text-muted)';
+                        badge.style.color = '#fff';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao atualizar badges:", error);
+        }
+    };
+
+    window.viewSubsystemHistory = async (sysId) => {
+        isViewingGlobalHistory = true;
+        document.getElementById('feedTitle').innerHTML = `<i class="fas fa-history"></i> Histórico Global: ${sysId}`;
+        document.getElementById('btnResetFeed').style.display = 'flex';
+        document.getElementById('engFeed').innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x" style="color: var(--orange);"></i><p style="margin-top:10px; color:var(--text-muted)">Buscando em todo o banco...</p></div>';
+        document.getElementById('feedPanel').scrollIntoView({behavior: 'smooth', block: 'start'});
+
+        let globalLogs = [];
+        try {
+            for (let v of robotVersionsArray) {
+                const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
+                snap.forEach(d => {
+                    let data = d.data();
+                    if (data.sys === sysId) {
+                        globalLogs.push({docId: d.id, versaoOrigem: v, ...data});
+                    }
+                });
+            }
+            globalLogs.sort((a,b) => b.timestamp - a.timestamp);
+            renderFilteredEngFeed(globalLogs, true); 
+        } catch(e) {
+            console.error(e);
+            document.getElementById('engFeed').innerHTML = '<p style="text-align:center; color:var(--brand-red);">Erro ao carregar histórico global.</p>';
+        }
+    };
+
+    document.getElementById('btnResetFeed').addEventListener('click', () => {
+        isViewingGlobalHistory = false;
+        document.getElementById('feedTitle').innerHTML = `<i class="fas fa-list"></i> Histórico Recente (${versaoAtiva})`;
+        document.getElementById('btnResetFeed').style.display = 'none';
+        renderFilteredEngFeed(engLogsData, false);
+    });
 
     const calcDelta = () => {
       const oldV = parseFloat(document.getElementById('kpiOld').value) || 0; 
@@ -1133,12 +1390,20 @@
 
     document.querySelectorAll('.kpi-input').forEach(input => input.addEventListener('input', calcDelta));
 
-    document.getElementById('btnSaveEng').addEventListener('click', async () => {
+    // PRECAUÇÃO: SALVAR ENGENHARIA
+    document.getElementById('btnSaveEng').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      if (btn.disabled) return;
+      
       const sys = document.getElementById('engSys').value; 
       const ver = document.getElementById('engVer').value.trim();
       const title = document.getElementById('engTitulo').value.trim();
       
       if(!ver || !title) { showToast('Versão da Peça e Título são obrigatórios!', 'error'); return; }
+
+      btn.disabled = true;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
 
       const entry = {
         ticket: `${sys}-${Math.floor(Math.random()*1000).toString().padStart(3, '0')}`,
@@ -1149,7 +1414,6 @@
         hipotese: document.getElementById('engHyp').value.trim(), 
         tradeoff: document.getElementById('engTrade').value.trim(), 
         rca: document.getElementById('engRca').value.trim(), 
-        status: document.getElementById('engStatus').value, 
         link: document.getElementById('engLink').value.trim(), 
         custo: document.getElementById('engCost').value, 
         timestamp: new Date(), dataStr: new Date().toLocaleDateString('pt-BR')
@@ -1161,46 +1425,63 @@
         showToast('Commit registado em ' + versaoAtiva, 'success');
         ['engVer','engTitulo','kpiOld','kpiNew','kpiDelta','engHyp','engTrade','engRca','engLink','engCost'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('kpiDelta').className = 'tele-val';
-        toggleEngForm();
-      } catch (e) { console.error(e); showToast('Erro ao gravar.', 'error'); }
+        document.getElementById('formEngenharia').style.display = 'none';
+        formEngOpen = false;
+        
+        if(isViewingGlobalHistory && document.getElementById('feedTitle').innerText.includes(sys)) {
+            viewSubsystemHistory(sys);
+        }
+      } catch (err) { 
+        console.error(err); showToast('Erro ao gravar.', 'error'); 
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
     });
 
-    const deleteEng = async (docId) => {
+    const deleteEng = async (docId, versaoDoc) => {
       if(!confirm("Deletar este ticket permanentemente?")) return;
       try { 
-        await deleteDoc(doc(db, "robos", ROBO_ATIVO, "versoes", versaoAtiva, "engenharia", docId)); 
+        await deleteDoc(doc(db, "robos", ROBO_ATIVO, "versoes", versaoDoc, "engenharia", docId)); 
         showToast('Ticket removido.', 'success'); 
+        
+        if (isViewingGlobalHistory) {
+            const currentSysName = document.getElementById('feedTitle').innerText.split(': ')[1];
+            if (currentSysName) viewSubsystemHistory(currentSysName);
+        }
       } catch (e) { console.error(e); }
     };
 
     document.getElementById('engFeed').addEventListener('click', (e) => {
       const btn = e.target.closest('.delete-eng-btn');
-      if(btn) deleteEng(btn.getAttribute('data-id'));
+      if(btn) deleteEng(btn.getAttribute('data-id'), btn.getAttribute('data-origem'));
     });
 
-    function renderEngFeed() {
+    function renderFilteredEngFeed(logsArray, isGlobal) {
       const feed = document.getElementById('engFeed');
-      if (engLogsData.length === 0) {
-        feed.innerHTML = `<div class="panel" id="emptyEng" style="text-align: center; padding: 60px 20px; background: transparent; border: 2px dashed var(--border-light); box-shadow: none;"><i class="fas fa-code-branch" style="font-size: 40px; margin-bottom: 16px; color: var(--border-focus);"></i><h3 style="color:var(--text-main); margin-bottom:8px; font-size: 16px;">Branch Vazia para ${versaoAtiva}</h3><p style="color: var(--text-muted); font-size: 14px;">Não há modificações documentadas nesta versão.</p></div>`;
+      if (logsArray.length === 0) {
+        feed.innerHTML = `<div class="panel" style="text-align: center; padding: 60px 20px; background: transparent; border: 2px dashed var(--border-light); box-shadow: none;"><i class="fas fa-folder-open" style="font-size: 40px; margin-bottom: 16px; color: var(--border-focus);"></i><p style="color: var(--text-muted); font-size: 14px;">Nenhum commit encontrado para esta visualização.</p></div>`;
         return;
       }
       
       let html = '';
-      engLogsData.forEach((e) => {
-        const safeStatus = e.status || 'Documentado'; const safeTicket = e.ticket || 'SYS-000'; const safeDataStr = e.dataStr || 'Data Desconhecida';
-        let badgeClass = 'status-failed'; let borderColor = 'var(--text-muted)';
-        if(safeStatus.includes('Prototipagem')) { badgeClass = 'status-testing'; borderColor = 'var(--brand-warn)'; }
-        else if(safeStatus.includes('Validado') || safeStatus.includes('Deployed')) { badgeClass = 'status-deployed'; borderColor = 'var(--brand-tele)'; }
+      logsArray.forEach((e) => {
+        const vOrigem = isGlobal ? e.versaoOrigem : versaoAtiva;
+        const safeTicket = e.ticket || 'SYS-000'; 
+        const safeDataStr = e.dataStr || 'Data Desconhecida';
 
-        html += `<div class="ticket-entry" style="border-left-color: ${borderColor}">
+        html += `<div class="ticket-entry" style="border-left-color: var(--orange)">
           <div class="ticket-header">
             <div>
               <span class="ticket-id"><i class="fas fa-ticket-alt"></i> ${safeTicket}</span>
+              ${isGlobal ? `<span class="badge-decode" style="margin-left:10px; background:var(--text-muted); color:#fff; font-size:10px;"><i class="fas fa-globe"></i> ${vOrigem}</span>` : ''}
               <span style="font-family: 'JetBrains Mono'; font-weight:700; font-size:12px; margin-left: 10px; color: var(--orange);">${e.versao || 'v?'}</span>
               <h3 class="ticket-title">${e.titulo || 'Sem Título'}</h3>
-              <div class="ticket-meta"><i class="far fa-clock"></i> Commit em ${safeDataStr} ${e.custo ? `| <i class="fas fa-coins" style="margin-left:8px;"></i> ${e.custo}` : ''}</div>
+              <div class="ticket-meta">
+                  <i class="far fa-clock"></i> ${safeDataStr} ${e.custo ? `| <i class="fas fa-coins" style="margin-left:8px;"></i> R$ ${e.custo}` : ''}
+              </div>
             </div>
-            <button class="delete-eng-btn" data-id="${e.docId}" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 16px; transition: color 0.2s;"><i class="fas fa-trash"></i></button>
+            <button class="delete-eng-btn" data-id="${e.docId}" data-origem="${vOrigem}" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 16px; transition: color 0.2s;"><i class="fas fa-trash"></i></button>
           </div>
           ${e.kpiOld || e.kpiNew ? `<div style="display:flex; gap:16px; margin-bottom:16px; overflow-x: auto; padding-bottom: 5px;">
             <div style="background:var(--bg-input); padding:8px 16px; border-radius:var(--radius-sm); border:1px solid var(--border-light); flex:1; min-width: 120px; display:flex; justify-content:space-between; align-items:center;">
@@ -1235,14 +1516,20 @@
     document.querySelectorAll('.bp-cost-input').forEach(input => input.addEventListener('input', calcTotalCost));
     document.getElementById('btnSize').addEventListener('click', function() { this.classList.toggle('active-orange'); });
 
-    document.getElementById('btnSaveBlueprint').addEventListener('click', async () => {
+    // PRECAUÇÃO: SALVAR BLUEPRINT
+    document.getElementById('btnSaveBlueprint').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      if (btn.disabled) return;
+
       const nome = document.getElementById('robotName').value.trim();
       const ver = document.getElementById('robotVersion').value.trim();
       if(!nome || !ver) { showToast('Preencha o Nome e a Versão do Robô!', 'error'); return; }
       
       const global = `${nome} - ${ver}`;
-      const btn = document.getElementById('btnSaveBlueprint');
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A gravar na árvore...'; btn.classList.add('loading');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A gravar na árvore...'; 
+      btn.classList.add('loading');
 
       const blueprintData = {
         drv: document.getElementById('bp-drv').value, sen: document.getElementById('bp-sen').value,
@@ -1257,12 +1544,20 @@
         await setDoc(versaoRef, blueprintData); 
         
         showToast('Nova versão criada e ativada!', 'success');
-        btn.innerHTML = '<i class="fas fa-check"></i> Criado!'; btn.classList.remove('loading'); btn.classList.add('success');
+        btn.innerHTML = '<i class="fas fa-check"></i> Criado!'; 
+        btn.classList.remove('loading'); 
+        btn.classList.add('success');
         
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-save"></i> Gravar Nova Versão'; btn.classList.remove('success'); }, 1500);
-      } catch (e) {
-        console.error(e); showToast('Erro ao criar Versão.', 'error');
-        btn.innerHTML = '<i class="fas fa-times"></i> Erro'; btn.classList.remove('loading');
+        setTimeout(() => { 
+            btn.innerHTML = '<i class="fas fa-save"></i> Gravar Nova Versão'; 
+            btn.classList.remove('success'); 
+            btn.disabled = false; 
+        }, 1500);
+      } catch (err) {
+        console.error(err); showToast('Erro ao criar Versão.', 'error');
+        btn.innerHTML = '<i class="fas fa-times"></i> Erro'; 
+        btn.classList.remove('loading');
+        btn.disabled = false; 
       }
     });
 
@@ -1435,69 +1730,18 @@
 
     document.getElementById('btnRefreshCharts').addEventListener('click', refreshCharts);
 
-    // --- LÓGICA: FEED GLOBAL DE ENGENHARIA ---
-    const renderGlobalEngFeed = async () => {
-      const feed = document.getElementById('globalEngFeed');
-      feed.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x" style="color: var(--orange);"></i><p style="margin-top: 10px; color: var(--text-muted);">A carregar histórico global...</p></div>';
-
-      let globalLogs = [];
-      try {
-        for (let v of robotVersionsArray) {
-          const snap = await getDocs(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"));
-          snap.forEach(d => globalLogs.push({...d.data(), versaoOrigem: v}));
-        }
-        
-        globalLogs.sort((a,b) => b.timestamp - a.timestamp);
-
-        if (globalLogs.length === 0) {
-          feed.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 40px;">Nenhum log encontrado na base de dados global.</p>';
-          return;
-        }
-
-        let html = '';
-        globalLogs.forEach((e) => {
-          const safeStatus = e.status || 'Documentado'; 
-          const safeTicket = e.ticket || 'SYS-000'; 
-          const safeDataStr = e.dataStr || 'Data Desconhecida';
-          
-          let badgeClass = 'status-failed'; let borderColor = 'var(--text-muted)';
-          if(safeStatus.includes('Prototipagem')) { badgeClass = 'status-testing'; borderColor = 'var(--brand-warn)'; }
-          else if(safeStatus.includes('Validado') || safeStatus.includes('Deployed')) { badgeClass = 'status-deployed'; borderColor = 'var(--brand-tele)'; }
-
-          html += `<div class="ticket-entry" style="border-left-color: ${borderColor}">
-            <div class="ticket-header">
-              <div>
-                <span class="ticket-id"><i class="fas fa-globe"></i> ${e.versaoOrigem}</span>
-                <span style="font-family: 'JetBrains Mono'; font-weight:700; font-size:12px; margin-left: 10px; color: var(--orange);">${safeTicket} (${e.versao || 'v?'})</span>
-                <h3 class="ticket-title">${e.titulo || 'Sem Título'}</h3>
-                <div class="ticket-meta">
-                  <span class="${badgeClass}" style="padding: 2px 6px; border-radius: 4px;">${safeStatus}</span>
-                  <i class="far fa-clock" style="margin-left: 10px;"></i> ${safeDataStr}
-                </div>
-              </div>
-            </div>
-            <div class="data-grid">
-              ${e.hipotese ? `<div class="data-block full"><h4><i class="fas fa-flask"></i> Hipótese</h4><p>${e.hipotese}</p></div>` : ''}
-              ${e.rca ? `<div class="data-block full"><h4><i class="fas fa-search-plus"></i> RCA / Resultados</h4><p>${e.rca}</p></div>` : ''}
-            </div>
-          </div>`;
-        });
-        feed.innerHTML = html;
-      } catch (error) {
-        console.error(error);
-        feed.innerHTML = '<p style="text-align:center; color:var(--brand-red);">Erro ao carregar logs globais.</p>';
-      }
-    };
-
-    // --- LÓGICA NOVA: AUTOFILL BLUEPRINT APENAS "DEPLOYED" ---
+    // PRECAUÇÃO: PUXAR ÚLTIMA VERSÃO
     const btnAutoFill = document.getElementById('btnAutoFillBlueprint');
     const novoBtnAutoFill = btnAutoFill.cloneNode(true);
     btnAutoFill.parentNode.replaceChild(novoBtnAutoFill, btnAutoFill);
 
-    novoBtnAutoFill.addEventListener('click', async () => {
-      const btn = novoBtnAutoFill;
+    novoBtnAutoFill.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      if (btn.disabled) return;
+
+      btn.disabled = true; 
       const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A buscar Deployed...';
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A buscar na Nuvem...';
       
       try {
         let globalLogs = [];
@@ -1510,11 +1754,10 @@
 
         let latest = { 'DRV': {v:'', c:''}, 'SEN': {v:'', c:''}, 'MEC_INT': {v:'', c:''}, 'MEC_ELE': {v:'', c:''}, 'SW': {v:'', c:''} };
         
-        let foundDeployed = false;
+        let foundData = false;
+        
         for (let log of globalLogs) {
-          if (log.status !== 'Deployed (Competição)') continue;
-          
-          foundDeployed = true;
+          foundData = true;
           let sys = log.ticket ? log.ticket.split('-')[0] : (log.sys || '');
           if (sys === 'MEC') sys = 'MEC_INT'; 
           
@@ -1524,10 +1767,9 @@
           }
         }
 
-        if (!foundDeployed) {
-            showToast('Nenhum subsistema "Deployed" encontrado na Nuvem.', 'warning');
-            btn.innerHTML = originalText;
-            return;
+        if (!foundData) {
+            showToast('Nenhuma informação encontrada na Nuvem.', 'warning');
+            return; 
         }
 
         const setVal = (id, val) => { const el = document.getElementById(id); if(el && val && el.value === '') el.value = val; };
@@ -1538,16 +1780,17 @@
         setVal('bp-sw', latest['SW'].v);
         
         calcTotalCost(); 
-        showToast('Apenas módulos DEPLOYED importados!', 'success');
-      } catch(e) {
-        console.error(e);
+        showToast('Apenas módulos MAIS RECENTES importados!', 'success');
+      } catch(err) {
+        console.error(err);
         showToast('Erro ao puxar dados da nuvem.', 'error');
       } finally {
         btn.innerHTML = originalText;
+        btn.disabled = false; 
       }
     });
 
-    // Inicializar (o resto é acionado pelo onSnapshot inicial)
+    // Inicializar UI (DB agora inicia após login)
     calcMatchScore();
     switchTab('match');
   </script>
