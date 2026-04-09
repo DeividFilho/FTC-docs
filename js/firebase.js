@@ -13,18 +13,27 @@ const firebaseConfig = {
   measurementId: "G-59T3XMN0Y2"
 };
 
+// Inicializa o App
 export const app = initializeApp(firebaseConfig);
+
+// Inicializa e exporta o Banco de Dados (Firestore)
 export const db = getFirestore(app);
 
+// Ativa o Modo Offline (Sobrevivência em Arena)
 enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code == 'failed-precondition') console.warn("Múltiplas abas abertas.");
-  else if (err.code == 'unimplemented') console.warn("Navegador não suporta offline.");
+  if (err.code == 'failed-precondition') {
+    console.warn("Múltiplas abas abertas, persistência offline falhou.");
+  } else if (err.code == 'unimplemented') {
+    console.warn("Navegador não suporta persistência offline.");
+  }
 });
 
+// Inicializa e exporta a Autenticação
 export const auth = getAuth(app);
+
+// Variável global para saber qual robô estamos gerindo
 export const ROBO_ATIVO = "metal_lab_principal"; 
 
-// Exportamos o updateDoc para fazer a deleção segura (Lixeira)
 export {
   collection, addDoc, setDoc, onSnapshot, deleteDoc, updateDoc, doc, query, orderBy, limit, getDocs,
   signInWithEmailAndPassword, onAuthStateChanged, signOut

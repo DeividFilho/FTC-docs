@@ -16,23 +16,64 @@
     }
   </script>
 
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styleS.css">
+
+  <style>
+    .container { padding-bottom: 90px; }
+    .matches-table-container { overflow-x: auto; scroll-behavior: smooth; }
+    
+    /* Modal de Logout Customizado */
+    .custom-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+      display: none; justify-content: center; align-items: center; z-index: 9999;
+      opacity: 0; transition: opacity 0.2s ease;
+    }
+    .custom-modal {
+      background: var(--bg-surface); padding: 24px; border-radius: var(--radius-md);
+      border: 1px solid var(--border-light); width: 90%; max-width: 360px;
+      text-align: center; box-shadow: var(--shadow-lg); transform: translateY(20px);
+      transition: transform 0.2s ease;
+    }
+    .custom-modal.show { transform: translateY(0); }
+    .custom-modal-overlay.show { display: flex; opacity: 1; }
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+    .modal-text { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 12px; }
+    .modal-btn { flex: 1; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter'; }
+    .btn-cancel { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-light); }
+    .btn-confirm { background: var(--brand-red); color: #fff; }
+
+    /* NOVO: Spinner Global de Carregamento */
+    #global-spinner {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 10000; color: var(--orange); transition: opacity 0.3s;
+    }
+    #global-spinner.hidden { opacity: 0; pointer-events: none; }
+  </style>
 </head>
 <body class="">
+
+  <div id="global-spinner">
+    <i class="fas fa-circle-notch fa-spin fa-3x"></i>
+    <p style="margin-top: 16px; font-family: 'JetBrains Mono'; color: #fff; letter-spacing: 1px;">A Sincronizar Sistemas...</p>
+  </div>
 
   <div id="login-screen">
     <div class="login-box">
       <h2><i class="fas fa-lock" style="color: var(--orange);"></i> Acesso Restrito</h2>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Insira suas credenciais do MetalLab.</p>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Insira as credenciais do MetalLab.</p>
       
       <input type="email" id="emailInput" placeholder="E-mail Operacional">
       <input type="password" id="senhaInput" placeholder="Senha">
       
-      <button id="btnLogin" style="background: var(--text-main); color: var(--bg-body);"><i class="fas fa-sign-in-alt"></i> AUTENTICAR</button>
+      <button type="button" id="btnLogin" style="background: var(--text-main); color: var(--bg-body);"><i class="fas fa-sign-in-alt"></i> AUTENTICAR</button>
     </div>
   </div>
 
-  <div id="app-container">
+  <div id="app-container" style="display: none;">
 
     <header class="topbar">
       <div class="logo-container">
@@ -42,9 +83,9 @@
 
       <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
         <span id="userBadge" style="font-size: 12px; font-family: 'JetBrains Mono'; color: var(--orange); font-weight: bold; text-transform: uppercase;"></span>
-        <button class="theme-btn" id="btnLogout" title="Sair do Sistema" style="border: 1px solid var(--border-light); border-radius: 4px; background: var(--bg-input);"><i class="fas fa-power-off" style="color: var(--brand-red);"></i></button>
+        <button type="button" class="theme-btn" id="btnLogout" title="Sair do Sistema" style="border: 1px solid var(--border-light); border-radius: 4px; background: var(--bg-input);"><i class="fas fa-power-off" style="color: var(--brand-red);"></i></button>
         
-        <button class="theme-btn" id="themeToggle" style="margin-left: 8px;">
+        <button type="button" class="theme-btn" id="themeToggle" style="margin-left: 8px;">
           <i class="fas fa-moon"></i>
           <i class="fas fa-sun"></i>
         </button>
@@ -58,12 +99,12 @@
       </div>
       
       <div class="nav-tabs">
-        <button class="nav-tab active" data-target-tab="match"><i class="fas fa-gamepad"></i> Match</button>
-        <button class="nav-tab" data-target-tab="eng"><i class="fas fa-server"></i> DevOps Log</button>
-        <button class="nav-tab" data-target-tab="robot"><i class="fas fa-cubes"></i> Blueprint</button>
-        <button class="nav-tab" data-target-tab="compare"><i class="fas fa-not-equal"></i> Compare</button>
-        <button class="nav-tab" data-target-tab="charts"><i class="fas fa-chart-pie"></i> Analytics</button>
-        <button class="nav-tab" data-target-tab="help"><i class="fas fa-book"></i> Ajuda</button>
+        <button type="button" class="nav-tab active" data-target-tab="match"><i class="fas fa-gamepad"></i> Match</button>
+        <button type="button" class="nav-tab" data-target-tab="eng"><i class="fas fa-server"></i> DevOps Log</button>
+        <button type="button" class="nav-tab" data-target-tab="robot"><i class="fas fa-cubes"></i> Blueprint</button>
+        <button type="button" class="nav-tab" data-target-tab="compare"><i class="fas fa-not-equal"></i> Compare</button>
+        <button type="button" class="nav-tab" data-target-tab="charts"><i class="fas fa-chart-pie"></i> Analytics</button>
+        <button type="button" class="nav-tab" data-target-tab="help"><i class="fas fa-book"></i> Ajuda</button>
       </div>
     </header>
 
@@ -97,65 +138,65 @@
               <div class="fg" style="margin-bottom: 20px;">
                 <label>Saiu da Linha (LEAVE) [3pt]</label>
                 <div class="segmented" id="sg-autoLeave">
-                  <button class="seg-btn active seg-option" data-target="autoLeave" data-val="0" title="Não saiu da linha">Não</button>
-                  <button class="seg-btn seg-option" data-target="autoLeave" data-val="3" data-orange="true" title="Saiu da linha (+3 pts)">Sim (+3)</button>
+                  <button type="button" class="seg-btn active seg-option" data-target="autoLeave" data-val="0" title="Não saiu da linha">Não</button>
+                  <button type="button" class="seg-btn seg-option" data-target="autoLeave" data-val="3" data-orange="true" title="Saiu da linha (+3 pts)">Sim (+3)</button>
                   <input type="hidden" id="autoLeave" value="0">
                 </div>
               </div>
               <div class="grid-2" style="gap: 16px;">
-                <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-autoClass">0</span><button class="c-btn counter-btn" data-target="autoClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="autoClass" value="0"></div></div>
-                <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-autoOver">0</span><button class="c-btn counter-btn" data-target="autoOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="autoOver" value="0"></div></div>
+                <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="autoClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-autoClass">0</span><button type="button" class="c-btn counter-btn" data-target="autoClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="autoClass" value="0"></div></div>
+                <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="autoOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-autoOver">0</span><button type="button" class="c-btn counter-btn" data-target="autoOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="autoOver" value="0"></div></div>
               </div>
-              <div class="fg" style="margin-top: 16px;"><label>Pattern Match [x2]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="autoPat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-autoPat">0</span><button class="c-btn counter-btn" data-target="autoPat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="autoPat" value="0"></div></div>
+              <div class="fg" style="margin-top: 16px;"><label>Pattern Match [x2]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="autoPat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-autoPat">0</span><button type="button" class="c-btn counter-btn" data-target="autoPat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="autoPat" value="0"></div></div>
             </div>
           </div>
 
           <div class="panel">
             <div class="panel-header"><span class="panel-title"><i class="fas fa-gamepad"></i> Tele-Op & EndGame</span></div>
             <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
-              <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-teleClass">0</span><button class="c-btn counter-btn" data-target="teleClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="teleClass" value="0"></div></div>
-              <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-teleOver">0</span><button class="c-btn counter-btn" data-target="teleOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="teleOver" value="0"></div></div>
-              <div class="fg"><label>No Depot [x1]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="teleDepot" data-delta="-1" title="Diminuir No Depot">-</button><span class="c-val" id="val-teleDepot">0</span><button class="c-btn counter-btn" data-target="teleDepot" data-delta="1" title="Aumentar No Depot">+</button><input type="hidden" id="teleDepot" value="0"></div></div>
-              <div class="fg"><label>Pattern Match [x2]</label><div class="counter-widget"><button class="c-btn counter-btn" data-target="telePat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-telePat">0</span><button class="c-btn counter-btn" data-target="telePat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="telePat" value="0"></div></div>
+              <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="teleClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-teleClass">0</span><button type="button" class="c-btn counter-btn" data-target="teleClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="teleClass" value="0"></div></div>
+              <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="teleOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-teleOver">0</span><button type="button" class="c-btn counter-btn" data-target="teleOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="teleOver" value="0"></div></div>
+              <div class="fg"><label>No Depot [x1]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="teleDepot" data-delta="-1" title="Diminuir No Depot">-</button><span class="c-val" id="val-teleDepot">0</span><button type="button" class="c-btn counter-btn" data-target="teleDepot" data-delta="1" title="Aumentar No Depot">+</button><input type="hidden" id="teleDepot" value="0"></div></div>
+              <div class="fg"><label>Pattern Match [x2]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="telePat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-telePat">0</span><button type="button" class="c-btn counter-btn" data-target="telePat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="telePat" value="0"></div></div>
             </div>
             <div class="fg" style="margin-bottom: 20px;">
               <label>Estacionamento na BASE</label>
               <div class="segmented" id="sg-teleBase">
-                <button class="seg-btn active seg-option" data-target="teleBase" data-val="0" title="Nenhum estacionamento">Nenhum</button>
-                <button class="seg-btn seg-option" data-target="teleBase" data-val="5" data-orange="true" title="Parcial (+5 pts)">Parcial (+5)</button>
-                <button class="seg-btn seg-option" data-target="teleBase" data-val="10" data-orange="true" title="Total (+10 pts)">Total (+10)</button>
+                <button type="button" class="seg-btn active seg-option" data-target="teleBase" data-val="0" title="Nenhum estacionamento">Nenhum</button>
+                <button type="button" class="seg-btn seg-option" data-target="teleBase" data-val="5" data-orange="true" title="Parcial (+5 pts)">Parcial (+5)</button>
+                <button type="button" class="seg-btn seg-option" data-target="teleBase" data-val="10" data-orange="true" title="Total (+10 pts)">Total (+10)</button>
                 <input type="hidden" id="teleBase" value="0">
               </div>
             </div>
             <div class="fg" style="margin-bottom: 24px;">
               <label>Bónus 2 Robôs na Base [10pt]</label>
               <div class="segmented" id="sg-teleDouble">
-                <button class="seg-btn active seg-option" data-target="teleDouble" data-val="0" title="Sem bónus">Não</button>
-                <button class="seg-btn seg-option" data-target="teleDouble" data-val="10" data-orange="true" title="Bónus (+10 pts)">Sim (+10)</button>
+                <button type="button" class="seg-btn active seg-option" data-target="teleDouble" data-val="0" title="Sem bónus">Não</button>
+                <button type="button" class="seg-btn seg-option" data-target="teleDouble" data-val="10" data-orange="true" title="Bónus (+10 pts)">Sim (+10)</button>
                 <input type="hidden" id="teleDouble" value="0">
               </div>
             </div>
             
             <div class="panel-header" style="margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 20px;"><span class="panel-title" style="color:var(--brand-red)"><i class="fas fa-exclamation-triangle"></i> Penalidades (Fouls)</span></div>
             <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
-              <div class="fg"><label>Minor Fouls [x10 Pts p/ Oponente]</label><div class="counter-widget"><button class="c-btn danger counter-btn" data-target="foulMinor" data-delta="-1" title="Diminuir Minor Fouls">-</button><span class="c-val" id="val-foulMinor" style="color:var(--brand-red)">0</span><button class="c-btn danger counter-btn" data-target="foulMinor" data-delta="1" title="Aumentar Minor Fouls">+</button><input type="hidden" id="foulMinor" value="0"></div></div>
-              <div class="fg"><label>Major Fouls [x30 Pts p/ Oponente]</label><div class="counter-widget"><button class="c-btn danger counter-btn" data-target="foulMajor" data-delta="-1" title="Diminuir Major Fouls">-</button><span class="c-val" id="val-foulMajor" style="color:var(--brand-red)">0</span><button class="c-btn danger counter-btn" data-target="foulMajor" data-delta="1" title="Aumentar Major Fouls">+</button><input type="hidden" id="foulMajor" value="0"></div></div>
+              <div class="fg"><label>Minor Fouls [x10 Pts p/ Oponente]</label><div class="counter-widget"><button type="button" class="c-btn danger counter-btn" data-target="foulMinor" data-delta="-1" title="Diminuir Minor Fouls">-</button><span class="c-val" id="val-foulMinor" style="color:var(--brand-red)">0</span><button type="button" class="c-btn danger counter-btn" data-target="foulMinor" data-delta="1" title="Aumentar Minor Fouls">+</button><input type="hidden" id="foulMinor" value="0"></div></div>
+              <div class="fg"><label>Major Fouls [x30 Pts p/ Oponente]</label><div class="counter-widget"><button type="button" class="c-btn danger counter-btn" data-target="foulMajor" data-delta="-1" title="Diminuir Major Fouls">-</button><span class="c-val" id="val-foulMajor" style="color:var(--brand-red)">0</span><button type="button" class="c-btn danger counter-btn" data-target="foulMajor" data-delta="1" title="Aumentar Major Fouls">+</button><input type="hidden" id="foulMajor" value="0"></div></div>
             </div>
 
             <div class="fg" style="border-top: 1px solid var(--border-light); padding-top: 20px;">
               <label>Diagnóstico da Partida</label>
               <div class="tag-cloud" id="grp-problemas">
-                <button class="tag active-orange tag-problem" data-exclusive="true" title="Partida sem incidentes">Partida Limpa</button>
-                <button class="tag tag-problem" title="Falha mecânica">Falha Mecânica</button>
-                <button class="tag tag-problem" title="Erro de código">Erro de Código</button>
-                <button class="tag tag-problem" title="Erro do piloto">Erro de Piloto</button>
-                <button class="tag tag-problem" title="Desconexão">Desconexão</button>
+                <button type="button" class="tag active-orange tag-problem" data-exclusive="true" title="Partida sem incidentes">Partida Limpa</button>
+                <button type="button" class="tag tag-problem" title="Falha mecânica">Falha Mecânica</button>
+                <button type="button" class="tag tag-problem" title="Erro de código">Erro de Código</button>
+                <button type="button" class="tag tag-problem" title="Erro do piloto">Erro de Piloto</button>
+                <button type="button" class="tag tag-problem" title="Desconexão">Desconexão</button>
               </div>
             </div>
           </div>
         </div>
 
-        <button class="fab" id="btnSaveMatch"><i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida</button>
+        <button type="button" class="fab" id="btnSaveMatch"><i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida</button>
       </section>
 
       <section id="sec-eng" class="section">
@@ -163,91 +204,16 @@
           <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
             <i class="fas fa-server"></i> DevOps Dashboard
           </h2>
-          <span style="font-size:12px; color: var(--text-muted);">Controle unificado de subsistemas</span>
+          <span style="font-size:12px; color: var(--text-muted);">Controle unificado de subsistemas e testes.</span>
         </div>
 
-        <div class="subsystem-grid" id="subsystems-grid" style="margin-bottom: 32px;">
-          
-          <div class="panel" style="padding: 20px; margin-bottom: 0;">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-truck-monster"></i> DRV - Chassi</span>
-                <span class="badge-decode" id="badge-DRV" style="background:var(--text-muted); color:#fff;">Sem dados</span>
-             </div>
-             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Drivetrain, rodas e base de movimentação.</p>
-             <div style="display:flex; gap:8px;">
-                <button class="nav-tab active" onclick="openEngForm('DRV')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
-                <button class="nav-tab" onclick="viewSubsystemHistory('DRV')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
-             </div>
-          </div>
-
-          <div class="panel" style="padding: 20px; margin-bottom: 0;">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-satellite-dish"></i> SEN - Sensores</span>
-                <span class="badge-decode" id="badge-SEN" style="background:var(--text-muted); color:#fff;">Sem dados</span>
-             </div>
-             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Visão computacional, odometria e IMU.</p>
-             <div style="display:flex; gap:8px;">
-                <button class="nav-tab active" onclick="openEngForm('SEN')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
-                <button class="nav-tab" onclick="viewSubsystemHistory('SEN')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
-             </div>
-          </div>
-
-          <div class="panel" style="padding: 20px; margin-bottom: 0;">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-claw-marks"></i> MEC - Intake</span>
-                <span class="badge-decode" id="badge-MEC_INT" style="background:var(--text-muted); color:#fff;">Sem dados</span>
-             </div>
-             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Sistema de coleta, garra e manipulação.</p>
-             <div style="display:flex; gap:8px;">
-                <button class="nav-tab active" onclick="openEngForm('MEC_INT')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
-                <button class="nav-tab" onclick="viewSubsystemHistory('MEC_INT')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
-             </div>
-          </div>
-
-          <div class="panel" style="padding: 20px; margin-bottom: 0;">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-arrows-alt-v"></i> MEC - Elevador</span>
-                <span class="badge-decode" id="badge-MEC_ELE" style="background:var(--text-muted); color:#fff;">Sem dados</span>
-             </div>
-             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Extensão linear, braços articulados e guias.</p>
-             <div style="display:flex; gap:8px;">
-                <button class="nav-tab active" onclick="openEngForm('MEC_ELE')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
-                <button class="nav-tab" onclick="viewSubsystemHistory('MEC_ELE')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
-             </div>
-          </div>
-
-          <div class="panel" style="padding: 20px; margin-bottom: 0;">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-laptop-code"></i> SW - Software</span>
-                <span class="badge-decode" id="badge-SW" style="background:var(--text-muted); color:#fff;">Sem dados</span>
-             </div>
-             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Algoritmos autônomos, PIDs e tele-operação.</p>
-             <div style="display:flex; gap:8px;">
-                <button class="nav-tab active" onclick="openEngForm('SW')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
-                <button class="nav-tab" onclick="viewSubsystemHistory('SW')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
-             </div>
-          </div>
-
-          <div class="panel" style="padding: 20px; margin-bottom: 0;">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                <span class="panel-title" style="margin:0; font-size:13px;"><i class="fas fa-chess-knight"></i> STR - Estratégia</span>
-                <span class="badge-decode" id="badge-STR" style="background:var(--text-muted); color:#fff;">Sem dados</span>
-             </div>
-             <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px; min-height: 36px;">Estudo de rotas, táticas de jogo e ciclo.</p>
-             <div style="display:flex; gap:8px;">
-                <button class="nav-tab active" onclick="openEngForm('STR')" style="flex:1; justify-content:center;"><i class="fas fa-plus"></i> Commit</button>
-                <button class="nav-tab" onclick="viewSubsystemHistory('STR')" style="flex:1; justify-content:center; background:var(--bg-input); color:var(--text-main); border:1px solid var(--border-light);"><i class="fas fa-history"></i> Histórico</button>
-             </div>
-          </div>
-
-        </div>
+        <div class="subsystem-grid" id="subsystems-grid" style="margin-bottom: 32px;"></div>
 
         <div class="panel" id="formEngenharia" style="border-left: 4px solid var(--orange); display: none;">
           <div class="panel-header">
             <div class="panel-title"><i class="fas fa-terminal"></i> Novo Commit de Engenharia</div>
-            <button class="theme-btn" id="btnCloseEngForm"><i class="fas fa-times"></i></button>
+            <button type="button" class="theme-btn" id="btnCloseEngForm"><i class="fas fa-times"></i></button>
           </div>
-          
           <div class="grid-2">
             <div class="fg">
               <label>Sub-Sistema (Módulo) <span style="color:var(--orange)">*</span></label>
@@ -261,14 +227,13 @@
               </select>
             </div>
             <div class="fg">
-              <label>Versão da Peça/Sprint (Ex: v2.1) <span style="color:var(--orange)">*</span></label>
-              <input type="text" id="engVer" placeholder="v1.0">
+              <label>Versão da Peça/Sprint <span style="color:var(--orange)">*</span></label>
+              <input type="text" id="engVer" placeholder="Ex: v1.0">
             </div>
             <div class="fg col-span-2">
               <label>Título do Ticket / Modificação <span style="color:var(--orange)">*</span></label>
               <input type="text" id="engTitulo" placeholder="Ex: Substituição das rodas mecanum por omni">
             </div>
-
             <div class="fg col-span-2" style="margin-top: 16px;">
               <label style="color: var(--orange);"><i class="fas fa-chart-line"></i> Telemetria & KPIs (Delta)</label>
               <div class="telemetry-group">
@@ -290,56 +255,57 @@
                 </div>
               </div>
             </div>
-
+            <div class="fg col-span-2" style="margin-top: 16px;"><label><i class="fas fa-flask text-muted"></i> Hipótese / Problema</label><textarea id="engHyp" placeholder="Qual era o problema?"></textarea></div>
+            <div class="fg col-span-2"><label><i class="fas fa-balance-scale text-muted"></i> Solução & Trade-offs</label><textarea id="engTrade" placeholder="O que desenhou/programou?"></textarea></div>
+            <div class="fg col-span-2"><label><i class="fas fa-search-plus text-muted"></i> RCA / Resultados</label><textarea id="engRca" placeholder="Funcionou?"></textarea></div>
+            <div class="fg col-span-2"><label><i class="fas fa-link text-muted"></i> Link Externo (Opcional)</label><input type="url" id="engLink" placeholder="URL..."></div>
+            <div class="fg col-span-2"><label>Custo do Módulo (R$) <i class="fas fa-coins text-muted"></i></label><input type="number" id="engCost" placeholder="Para o BOM"></div>
             <div class="fg col-span-2" style="margin-top: 16px;">
-              <label><i class="fas fa-flask text-muted"></i> Hipótese / Levantamento de Requisitos</label>
-              <textarea id="engHyp" placeholder="Qual era o problema? O que precisava de resolver?"></textarea>
+              <button type="button" class="nav-tab active" id="btnSaveEng" style="background:var(--text-main); color:var(--bg-body); padding:14px; font-weight: 700; width: 100%; border-radius: 8px; font-family: 'JetBrains Mono'; transition: opacity 0.2s;"><i class="fas fa-code-commit"></i> ENVIAR PARA A NUVEM</button>
             </div>
+          </div>
+        </div>
 
-            <div class="fg col-span-2">
-              <label><i class="fas fa-balance-scale text-muted"></i> Solução Aplicada & Trade-offs</label>
-              <textarea id="engTrade" placeholder="O que desenhou/programou? O que sacrificou (ex: ganhamos velocidade, perdemos força)?"></textarea>
+        <div class="panel" id="formDrill" style="border-left: 4px solid var(--brand-blue); display: none;">
+          <div class="panel-header">
+             <span class="panel-title" style="color: var(--brand-blue);"><i class="fas fa-vial"></i> Laboratório de QA: <span id="drillSysLabel" style="font-family: 'JetBrains Mono';"></span></span>
+             <button type="button" class="theme-btn" id="btnCloseDrillForm"><i class="fas fa-times"></i></button>
+          </div>
+          
+          <div class="grid-2" style="margin-bottom: 20px;">
+            <div class="fg">
+              <label>Piloto / Avaliador <span style="color:var(--brand-blue)">*</span></label>
+              <input type="text" id="drillTester" placeholder="Quem está executando o teste?">
+              <input type="hidden" id="drillSysHidden">
             </div>
-
-            <div class="fg col-span-2">
-              <label><i class="fas fa-search-plus text-muted"></i> Root Cause Analysis (RCA) / Resultados</label>
-              <textarea id="engRca" placeholder="Funcionou? O que aprendemos para a próxima versão?"></textarea>
-            </div>
-
-            <div class="fg col-span-2">
-              <label><i class="fas fa-link text-muted"></i> Link Externo (Opcional)</label>
-              <input type="url" id="engLink" placeholder="URL do GitHub, Onshape, Documento...">
-            </div>
-
-            <div class="fg col-span-2">
-              <label>Custo do Módulo (R$ / €) <i class="fas fa-coins text-muted"></i></label>
-              <input type="number" id="engCost" placeholder="Para o BOM">
-            </div>
-
-            <div class="fg col-span-2" style="margin-top: 16px;">
-              <button class="nav-tab active" id="btnSaveEng" style="background:var(--text-main); color:var(--bg-body); padding:14px; font-weight: 700; width: 100%; border-radius: 8px; font-family: 'JetBrains Mono'; transition: opacity 0.2s;">
-                <i class="fas fa-code-commit"></i> ENVIAR PARA A NUVEM
-              </button>
-            </div>
+          </div>
+          
+          <div id="drillChecklist" class="grid-2"></div>
+          
+          <div class="fg" style="margin-top: 24px; border-top: 1px solid var(--border-light); padding-top: 20px;">
+            <label>Observações Adicionais</label>
+            <textarea id="drillNotes" placeholder="Algum comportamento estranho? Barulho? Anote aqui..."></textarea>
+          </div>
+          
+          <div class="fg col-span-2" style="margin-top: 16px;">
+            <button type="button" class="nav-tab active" id="btnSaveDrill" style="background:var(--brand-blue); color:#fff; padding:14px; font-weight: 700; width: 100%; border-radius: 8px; font-family: 'JetBrains Mono';"><i class="fas fa-save"></i> GRAVAR RELATÓRIO DE TESTE</button>
           </div>
         </div>
 
         <div class="panel" id="feedPanel">
           <div class="panel-header">
-             <span class="panel-title" id="feedTitle"><i class="fas fa-list"></i> Histórico Recente (Versão Ativa)</span>
-             <button class="theme-btn" id="btnResetFeed" style="display:none; width:auto; padding: 0 10px; font-size:12px; font-family:'JetBrains Mono'; background:var(--bg-input); color:var(--text-main); border-radius:4px;"><i class="fas fa-times"></i> Limpar Filtro Global</button>
+             <span class="panel-title" id="feedTitle"><i class="fas fa-list"></i> Linha do Tempo Unificada</span>
+             <button type="button" class="theme-btn" id="btnResetFeed" style="display:none; width:auto; padding: 0 10px; font-size:12px; font-family:'JetBrains Mono'; background:var(--bg-input); color:var(--text-main); border-radius:4px;"><i class="fas fa-times"></i> Limpar Filtro Global</button>
           </div>
-          <div id="engFeed" class="timeline">
-          </div>
+          <div id="engFeed" class="timeline"></div>
         </div>
-
       </section>
 
       <section id="sec-robot" class="section">
         <div class="panel">
           <div class="panel-header">
             <div class="panel-title"><i class="fas fa-cubes"></i> Bill of Materials & Configuração</div>
-            </div>
+          </div>
 
           <div class="grid-2" style="max-width: 500px; margin: 0 auto 30px auto;">
             <div class="fg">
@@ -371,7 +337,7 @@
             </div>
 
             <div class="robot-center">
-              <img src="Versão.svg" alt="Robô CAD" class="robot-image" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Robot_icon.svg/200px-Robot_icon.svg.png'; this.style.opacity='0.2';">
+              <img src="Versão.svg" alt="Modelo CAD do Robô" class="robot-image" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Robot_icon.svg/200px-Robot_icon.svg.png'; this.style.opacity='0.2';">
               
               <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--orange); margin-top: 10px; width: 100%;">
                 <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Custo Total (BOM)</div>
@@ -385,7 +351,7 @@
                 </div>
                 <div class="fg" style="flex:1;">
                   <label style="font-size:10px; text-transform:none;">Sizing (18"x18")</label>
-                  <button class="seg-btn" id="btnSize" style="height: 100%; border: 1px solid var(--border-light);" title="Clique para marcar como aprovado">Aprovado <i class="fas fa-check"></i></button>
+                  <button type="button" class="seg-btn" id="btnSize" style="height: 100%; border: 1px solid var(--border-light);" title="Clique para marcar como aprovado">Aprovado <i class="fas fa-check"></i></button>
                 </div>
               </div>
             </div>
@@ -417,7 +383,7 @@
 
         </div>
 
-        <button class="fab" id="btnSaveBlueprint"><i class="fas fa-save"></i> Gravar Nova Versão</button>
+        <button type="button" class="fab" id="btnSaveBlueprint"><i class="fas fa-save"></i> Gravar Nova Versão</button>
       </section>
 
       <section id="sec-compare" class="section">
@@ -435,7 +401,7 @@
           </div>
           
           <div id="compareResults" style="margin-top: 30px; overflow-x: auto;">
-             <p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução do robô.</p>
+             <p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução mecânica e de desempenho.</p>
           </div>
         </div>
       </section>
@@ -445,7 +411,7 @@
           <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
             <i class="fas fa-chart-pie" style="color:var(--orange);"></i> Analytics da Versão Ativa
           </h2>
-          <button class="nav-tab active" id="btnRefreshCharts" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Atualizar Dados</button>
+          <button type="button" class="nav-tab active" id="btnRefreshCharts" style="border:1px solid var(--border-focus); background: var(--bg-surface); color: var(--text-main);"><i class="fas fa-sync-alt"></i> Atualizar Dados</button>
         </div>
 
         <div class="hud-grid" style="margin-bottom: 24px;">
@@ -500,17 +466,18 @@
           </div>
 
           <div class="chart-card">
-            <h3>⚙️ Distribuição de Esforço (DevOps)</h3>
-            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Commits registados por Subsistema</p>
-            <div class="chart-wrapper">
-              <canvas id="devOpsEffortChart"></canvas>
+            <h3>🕸️ Qualidade por Subsistema (QA)</h3>
+            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Com base nos Drills de Teste</p>
+            <div class="chart-wrapper" aria-label="Gráfico de Radar mostrando a eficiência de qualidade por subsistema">
+              <canvas id="robotProfileRadarChart"></canvas>
             </div>
           </div>
 
           <div class="chart-card">
-            <h3>🕸️ Perfil de Desempenho do Robô</h3>
+            <h3>⚙️ Distribuição de Esforço (DevOps)</h3>
+            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Commits registados por Subsistema</p>
             <div class="chart-wrapper">
-              <canvas id="robotProfileRadarChart"></canvas>
+              <canvas id="devOpsEffortChart"></canvas>
             </div>
           </div>
 
@@ -566,7 +533,7 @@
           <div style="text-align: center; margin-bottom: 40px;">
             <h3 style="font-size: 24px; color: var(--text-main); margin-bottom: 16px;">Arquitetura Baseada em Versões</h3>
             <p style="color: var(--text-muted); max-width: 750px; margin: 0 auto 30px auto; font-size: 15px;">
-              O Mission Control funciona com um sistema de <strong>Entidades Hierárquicas</strong>. Isto significa que tudo o que você regista (uma partida, uma falha, uma nova peça) está "amarrado" a uma <strong>Versão Específica</strong> do robô. Assim, você consegue provar com dados exatos se a "Garra v2" melhorou a eficiência em relação à "Garra v1".
+              O Mission Control funciona com um sistema de <strong>Entidades Hierárquicas</strong>. Isto significa que tudo o que você regista (uma partida, uma falha, um teste de QA) está "amarrado" a uma <strong>Versão Específica</strong> do robô.
             </p>
           </div>
 
@@ -588,40 +555,11 @@
               <h3>2. O Seletor Global (Topo)</h3>
               <p>O menu suspenso no topo é a "Máquina do Tempo" do sistema.</p>
               <ul>
-                <li><i class="fas fa-exclamation-circle"></i> Tudo o que for salvo (partidas ou engenharia) será guardado <strong>apenas</strong> na versão que estiver selecionada lá em cima.</li>
+                <li><i class="fas fa-exclamation-circle"></i> Tudo o que for salvo será guardado <strong>apenas</strong> na versão que estiver selecionada lá em cima.</li>
                 <li><i class="fas fa-chart-line"></i> Troque a versão no seletor e todos os gráficos e tabelas atualizarão magicamente para refletir o passado.</li>
               </ul>
             </div>
-
-            <div class="help-card">
-              <div class="help-icon"><i class="fas fa-server"></i></div>
-              <h3>3. Dashboard de Subsistemas</h3>
-              <p>Na aba DevOps Log, você tem um controle centralizado de cada parte do robô.</p>
-              <ul>
-                <li><i class="fas fa-search"></i> Você vê imediatamente em qual versão cada subsistema está no momento atual.</li>
-                <li><i class="fas fa-history"></i> Clique em "Histórico" de um Card para buscar <strong>todas as alterações</strong> que aquele módulo sofreu desde o nascimento do robô.</li>
-              </ul>
-            </div>
-
-            <div class="help-card">
-              <div class="help-icon"><i class="fas fa-balance-scale-right"></i></div>
-              <h3>4. Compare (Comprovar Evolução)</h3>
-              <p>Excelente para justificar escolhas de design para os juízes do prêmio Innovate/Design.</p>
-              <ul>
-                <li><i class="fas fa-eye"></i> Selecione a versão antiga (A) e a nova (B).</li>
-                <li><i class="fas fa-check"></i> O painel destaca em <span style="color:var(--brand-tele); font-weight:bold;">verde</span> os atributos que melhoraram (ex: ficou mais leve) e em <span style="color:var(--brand-red); font-weight:bold;">vermelho</span> o que piorou (ex: ficou mais caro).</li>
-              </ul>
-            </div>
           </div>
-
-          <div class="help-tip" style="margin-top: 32px; display: flex; gap: 16px; align-items: flex-start;">
-            <i class="fas fa-lightbulb" style="font-size: 24px; color: var(--orange); margin-top: 4px;"></i>
-            <div>
-              <strong style="display: block; margin-bottom: 4px; font-size: 14px; color: var(--text-main);">Dica de Ouro do MetalLab:</strong> 
-              <span style="color: var(--text-main);">Nunca misture partidas de duas configurações mecânicas diferentes na mesma versão. Se você mudou a relação de engrenagens do braço, vá no Blueprint, crie a versão "v1.2" e grave as novas partidas lá. Isso garante que as estatísticas do Analytics não fiquem contaminadas!</span>
-            </div>
-          </div>
-
         </div>
       </section>
 
@@ -629,6 +567,17 @@
   </div> 
 
   <div class="toast-container" id="toastContainer"></div>
+
+  <div class="custom-modal-overlay" id="logoutModalOverlay">
+    <div class="custom-modal" id="logoutModal">
+      <div class="modal-title">Encerrar Sessão</div>
+      <div class="modal-text">Tem a certeza que pretende desligar do Mission Control?</div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn btn-cancel" id="btnCancelLogout">Cancelar</button>
+        <button type="button" class="modal-btn btn-confirm" id="btnConfirmLogout">Sair do Sistema</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="js/main.js"></script>
 </body>
