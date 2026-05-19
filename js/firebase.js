@@ -4,13 +4,13 @@ import { getFirestore, enableIndexedDbPersistence, collection, addDoc, setDoc, o
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB6ynxAi14VHRWTro2Rm3VQAQS9rn2CtmE",
-  authDomain: "ftc-docs-9e948.firebaseapp.com",
-  projectId: "ftc-docs-9e948",
-  storageBucket: "ftc-docs-9e948.firebasestorage.app",
-  messagingSenderId: "777609360371",
-  appId: "1:777609360371:web:e0176d762d5c68055b5886",
-  measurementId: "G-59T3XMN0Y2"
+  apiKey: "AIzaSyAXCGGFmWCwHFbwv4jwDAJlw7DwiiNuRcE",
+  authDomain: "ghost-data-8e9ed.firebaseapp.com",
+  projectId: "ghost-data-8e9ed",
+  storageBucket: "ghost-data-8e9ed.firebasestorage.app",
+  messagingSenderId: "156456827509",
+  appId: "1:156456827509:web:47874feaa84bda57c4563c",
+  measurementId: "G-PTT6FJHHW5"
 };
 
 // Inicializa o App

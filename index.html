@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Mission Control — MetalLab</title>
+  <title>Mission Control — OBR</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -64,7 +64,7 @@
   <div id="login-screen">
     <div class="login-box">
       <h2><i class="fas fa-lock" style="color: var(--orange);"></i> Acesso Restrito</h2>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Insira as credenciais do MetalLab.</p>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Insira as credenciais da Equipe OBR.</p>
       
       <input type="email" id="emailInput" placeholder="E-mail Operacional">
       <input type="password" id="senhaInput" placeholder="Senha">
@@ -77,8 +77,8 @@
 
     <header class="topbar">
       <div class="logo-container">
-        <h1>MetalLab</h1>
-        <span class="badge-decode">DECODE_OS</span>
+        <h1>OBR</h1>
+        <span class="badge-decode">MISSION CONTROL</span>
       </div>
 
       <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
@@ -99,10 +99,10 @@
       </div>
       
       <div class="nav-tabs">
-        <button type="button" class="nav-tab active" data-target-tab="match"><i class="fas fa-gamepad"></i> Match</button>
-        <button type="button" class="nav-tab" data-target-tab="eng"><i class="fas fa-server"></i> DevOps Log</button>
-        <button type="button" class="nav-tab" data-target-tab="robot"><i class="fas fa-cubes"></i> Blueprint</button>
-        <button type="button" class="nav-tab" data-target-tab="compare"><i class="fas fa-not-equal"></i> Compare</button>
+        <button type="button" class="nav-tab active" data-target-tab="match"><i class="fas fa-gamepad"></i> Partida</button>
+        <button type="button" class="nav-tab" data-target-tab="eng"><i class="fas fa-server"></i> Engenharia</button>
+        <button type="button" class="nav-tab" data-target-tab="robot"><i class="fas fa-cubes"></i> Projeto</button>
+        <button type="button" class="nav-tab" data-target-tab="compare"><i class="fas fa-not-equal"></i> Comparar</button>
         <button type="button" class="nav-tab" data-target-tab="charts"><i class="fas fa-chart-pie"></i> Analytics</button>
         <button type="button" class="nav-tab" data-target-tab="help"><i class="fas fa-book"></i> Ajuda</button>
       </div>
@@ -111,117 +111,91 @@
     <main class="container">
 
       <section id="sec-match" class="section active">
-        <div class="hud-grid">
-          <div class="hud-card accent"><span class="hud-lbl">Pts Totais</span><span class="hud-val" id="hudTotal">0</span></div>
-          <div class="hud-card"><span class="hud-lbl">Autônomo</span><span class="hud-val" id="hudAuto">0</span></div>
-          <div class="hud-card"><span class="hud-lbl">Tele-op</span><span class="hud-val" id="hudTele">0</span></div>
-          <div class="hud-card danger"><span class="hud-lbl" style="color:var(--brand-red)">Fouls (Penalidades)</span><span class="hud-val" id="hudFouls" style="color:var(--brand-red)">0</span></div>
-        </div>
+  <div class="hud-grid" style="margin-bottom: 20px;">
+    <div class="hud-card accent"><span class="hud-lbl">Pontos Trajeto</span><span class="hud-val" id="trajectoryPoints">0</span></div>
+    <div class="hud-card"><span class="hud-lbl">Chegada</span><span class="hud-val" id="arrivalPoints">0</span></div>
+    <div class="hud-card"><span class="hud-lbl">Subtotal</span><span class="hud-val" id="totalBeforeMultiplier">0</span></div>
+    <div class="hud-card"><span class="hud-lbl">Mult. Resgate</span><span class="hud-val" id="rescueMultiplier">1.0</span></div>
+    <div class="hud-card"><span class="hud-lbl">Mult. Surpresa</span><span class="hud-val" id="surpriseMultiplier">1.0</span></div>
+    <div class="hud-card danger"><span class="hud-lbl" style="color:var(--orange);">PONTUAÇÃO FINAL</span><span class="hud-val" id="finalScore" style="color:var(--orange);">0</span></div>
+  </div>
 
-        <div class="grid-2">
-          <div class="fg">
-            <div class="panel">
-              <div class="panel-header"><span class="panel-title"><i class="fas fa-microchip"></i> Setup da Partida</span></div>
-              <div class="fg" style="margin-bottom: 16px;">
-                <label>Configuração Ativa (Bloqueada pelo Global)</label>
-                <select id="matchMec" disabled><option value="">Sincronizando...</option></select>
-              </div>
-              <div class="grid-2">
-                <div class="fg"><label>Pilotos</label><input type="text" id="pilotos" placeholder="Nomes"></div>
-                <div class="fg"><label>Meta (Target Pts)</label><input type="number" id="pontEsperada" value="100"></div>
-                <div class="fg col-span-2"><label>Eficiência Calculada</label><span id="hudEfic" style="font-family: 'JetBrains Mono'; font-size: 24px; font-weight: 700;">0%</span></div>
-              </div>
-            </div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title"><i class="fas fa-road"></i> Perigos do Trajeto (clique ao superar)</span></div>
+      <div class="danger-grid" style="display: grid; grid-template-columns: repeat(2,1fr); gap: 10px;">
+        <button type="button" class="danger-btn" data-type="Obstáculo" data-value="20"><i class="fas fa-cube"></i> Obstáculo (+20)</button>
+        <button type="button" class="danger-btn" data-type="Gap" data-value="10"><i class="fas fa-arrow-down"></i> Gap (+10)</button>
+        <button type="button" class="danger-btn" data-type="Rampa" data-value="10"><i class="fas fa-mountain"></i> Rampa (+10/lad)</button>
+        <button type="button" class="danger-btn" data-type="Gangorra" data-value="20"><i class="fas fa-balance-scale"></i> Gangorra (+20)</button>
+        <button type="button" class="danger-btn" data-type="Intersecção" data-value="10"><i class="fas fa-code-branch"></i> Intersecção (+10)</button>
+        <button type="button" class="danger-btn" data-type="Beco sem saída" data-value="10"><i class="fas fa-ban"></i> Beco sem saída (+10)</button>
+        <button type="button" class="danger-btn" data-type="Passagem" data-value="0"><i class="fas fa-door-open"></i> Passagem (0)</button>
+        <button type="button" class="danger-btn" data-type="Lombada" data-value="10"><i class="fas fa-wave-square"></i> Lombada (+10)</button>
+      </div>
+      <div style="margin-top: 20px;">
+        <button type="button" class="nav-tab active" id="btnCheckpoint" style="background:#3b82f6; color:#fff; width:100%;"><i class="fas fa-flag-checkered"></i> Atingiu Checkpoint (pontua ladrilhos)</button>
+        <button type="button" class="nav-tab" id="btnArrival" style="margin-top:8px; background:var(--orange); color:#000; width:100%;"><i class="fas fa-flag-checkered"></i> Atingiu o Ladrilho de Chegada</button>
+        <button type="button" class="nav-tab" id="btnResetRound" style="margin-top:8px; background:#ef4444; color:#fff; width:100%;"><i class="fas fa-redo-alt"></i> Nova Tentativa / Reset</button>
+      </div>
+    </div>
 
-            <div class="panel">
-              <div class="panel-header"><span class="panel-title"><i class="fas fa-robot"></i> Autônomo</span></div>
-              <div class="fg" style="margin-bottom: 20px;">
-                <label>Saiu da Linha (LEAVE) [3pt]</label>
-                <div class="segmented" id="sg-autoLeave">
-                  <button type="button" class="seg-btn active seg-option" data-target="autoLeave" data-val="0" title="Não saiu da linha">Não</button>
-                  <button type="button" class="seg-btn seg-option" data-target="autoLeave" data-val="3" data-orange="true" title="Saiu da linha (+3 pts)">Sim (+3)</button>
-                  <input type="hidden" id="autoLeave" value="0">
-                </div>
-              </div>
-              <div class="grid-2" style="gap: 16px;">
-                <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="autoClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-autoClass">0</span><button type="button" class="c-btn counter-btn" data-target="autoClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="autoClass" value="0"></div></div>
-                <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="autoOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-autoOver">0</span><button type="button" class="c-btn counter-btn" data-target="autoOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="autoOver" value="0"></div></div>
-              </div>
-              <div class="fg" style="margin-top: 16px;"><label>Pattern Match [x2]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="autoPat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-autoPat">0</span><button type="button" class="c-btn counter-btn" data-target="autoPat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="autoPat" value="0"></div></div>
-            </div>
-          </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title"><i class="fas fa-hand-holding-heart"></i> Sala de Resgate</span></div>
+      <div class="fg" style="margin-bottom: 15px;">
+        <label>Vítimas Vivas (prata) salvas na área verde</label>
+        <input type="number" id="liveCorrect" min="0" max="2" value="0" step="1">
+      </div>
+      <div class="fg" style="margin-bottom: 15px;">
+        <label>Vítimas Mortas (escuras) salvas na área vermelha</label>
+        <input type="number" id="deadCorrect" min="0" max="1" value="0" step="1">
+      </div>
+      <button type="button" id="btnRecordRescue" class="nav-tab active" style="background: #10b981; color:#fff; width:100%;"><i class="fas fa-dove"></i> Registrar Resgate (calcula multiplicador)</button>
+    </div>
+  </div>
 
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title"><i class="fas fa-gamepad"></i> Tele-Op & EndGame</span></div>
-            <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
-              <div class="fg"><label>Classified [x3]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="teleClass" data-delta="-1" title="Diminuir Classified">-</button><span class="c-val" id="val-teleClass">0</span><button type="button" class="c-btn counter-btn" data-target="teleClass" data-delta="1" title="Aumentar Classified">+</button><input type="hidden" id="teleClass" value="0"></div></div>
-              <div class="fg"><label>Overflow [x1]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="teleOver" data-delta="-1" title="Diminuir Overflow">-</button><span class="c-val" id="val-teleOver">0</span><button type="button" class="c-btn counter-btn" data-target="teleOver" data-delta="1" title="Aumentar Overflow">+</button><input type="hidden" id="teleOver" value="0"></div></div>
-              <div class="fg"><label>No Depot [x1]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="teleDepot" data-delta="-1" title="Diminuir No Depot">-</button><span class="c-val" id="val-teleDepot">0</span><button type="button" class="c-btn counter-btn" data-target="teleDepot" data-delta="1" title="Aumentar No Depot">+</button><input type="hidden" id="teleDepot" value="0"></div></div>
-              <div class="fg"><label>Pattern Match [x2]</label><div class="counter-widget"><button type="button" class="c-btn counter-btn" data-target="telePat" data-delta="-1" title="Diminuir Pattern">-</button><span class="c-val" id="val-telePat">0</span><button type="button" class="c-btn counter-btn" data-target="telePat" data-delta="1" title="Aumentar Pattern">+</button><input type="hidden" id="telePat" value="0"></div></div>
-            </div>
-            <div class="fg" style="margin-bottom: 20px;">
-              <label>Estacionamento na BASE</label>
-              <div class="segmented" id="sg-teleBase">
-                <button type="button" class="seg-btn active seg-option" data-target="teleBase" data-val="0" title="Nenhum estacionamento">Nenhum</button>
-                <button type="button" class="seg-btn seg-option" data-target="teleBase" data-val="5" data-orange="true" title="Parcial (+5 pts)">Parcial (+5)</button>
-                <button type="button" class="seg-btn seg-option" data-target="teleBase" data-val="10" data-orange="true" title="Total (+10 pts)">Total (+10)</button>
-                <input type="hidden" id="teleBase" value="0">
-              </div>
-            </div>
-            <div class="fg" style="margin-bottom: 24px;">
-              <label>Bónus 2 Robôs na Base [10pt]</label>
-              <div class="segmented" id="sg-teleDouble">
-                <button type="button" class="seg-btn active seg-option" data-target="teleDouble" data-val="0" title="Sem bónus">Não</button>
-                <button type="button" class="seg-btn seg-option" data-target="teleDouble" data-val="10" data-orange="true" title="Bónus (+10 pts)">Sim (+10)</button>
-                <input type="hidden" id="teleDouble" value="0">
-              </div>
-            </div>
-            
-            <div class="panel-header" style="margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 20px;"><span class="panel-title" style="color:var(--brand-red)"><i class="fas fa-exclamation-triangle"></i> Penalidades (Fouls)</span></div>
-            <div class="grid-2" style="gap: 16px; margin-bottom: 20px;">
-              <div class="fg"><label>Minor Fouls [x10 Pts p/ Oponente]</label><div class="counter-widget"><button type="button" class="c-btn danger counter-btn" data-target="foulMinor" data-delta="-1" title="Diminuir Minor Fouls">-</button><span class="c-val" id="val-foulMinor" style="color:var(--brand-red)">0</span><button type="button" class="c-btn danger counter-btn" data-target="foulMinor" data-delta="1" title="Aumentar Minor Fouls">+</button><input type="hidden" id="foulMinor" value="0"></div></div>
-              <div class="fg"><label>Major Fouls [x30 Pts p/ Oponente]</label><div class="counter-widget"><button type="button" class="c-btn danger counter-btn" data-target="foulMajor" data-delta="-1" title="Diminuir Major Fouls">-</button><span class="c-val" id="val-foulMajor" style="color:var(--brand-red)">0</span><button type="button" class="c-btn danger counter-btn" data-target="foulMajor" data-delta="1" title="Aumentar Major Fouls">+</button><input type="hidden" id="foulMajor" value="0"></div></div>
-            </div>
+  <div class="panel" style="margin-top: 24px;">
+    <div class="panel-header"><span class="panel-title"><i class="fas fa-star-of-life"></i> Desafio Surpresa (opcional)</span></div>
+    <label style="display: flex; align-items: center; gap: 12px;">
+      <input type="checkbox" id="surpriseCompleted"> Concluímos o Desafio Surpresa nesta rodada (multiplicador 1,5x)
+    </label>
+    <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">*O multiplicador só é aplicado se a equipe cumpriu o desafio surpresa sorteado 30 minutos antes.</p>
+  </div>
 
-            <div class="fg" style="border-top: 1px solid var(--border-light); padding-top: 20px;">
-              <label>Diagnóstico da Partida</label>
-              <div class="tag-cloud" id="grp-problemas">
-                <button type="button" class="tag active-orange tag-problem" data-exclusive="true" title="Partida sem incidentes">Partida Limpa</button>
-                <button type="button" class="tag tag-problem" title="Falha mecânica">Falha Mecânica</button>
-                <button type="button" class="tag tag-problem" title="Erro de código">Erro de Código</button>
-                <button type="button" class="tag tag-problem" title="Erro do piloto">Erro de Piloto</button>
-                <button type="button" class="tag tag-problem" title="Desconexão">Desconexão</button>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="panel" style="margin-top: 20px;">
+    <div class="panel-header"><span class="panel-title"><i class="fas fa-users"></i> Dados da Equipe</span></div>
+    <div class="fg">
+      <label>Pilotos / Nomes</label>
+      <input type="text" id="pilotos" placeholder="Ex: Ana, João">
+    </div>
+  </div>
 
-        <button type="button" class="fab" id="btnSaveMatch"><i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida</button>
-      </section>
+  <button type="button" class="fab" id="btnSaveMatch" style="margin-top: 20px;"><i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida OBR</button>
+</section>
 
       <section id="sec-eng" class="section">
         <div class="panel-header" style="margin-bottom: 24px; border: none; padding: 0;">
           <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap:10px; text-transform: uppercase;">
-            <i class="fas fa-server"></i> DevOps Dashboard
+            <i class="fas fa-server"></i> Engenharia & Testes OBR
           </h2>
-          <span style="font-size:12px; color: var(--text-muted);">Controle unificado de subsistemas e testes.</span>
+          <span style="font-size:12px; color: var(--text-muted);">Registro de melhorias, commits e testes de qualidade.</span>
         </div>
 
         <div class="subsystem-grid" id="subsystems-grid" style="margin-bottom: 32px;"></div>
 
         <div class="panel" id="formEngenharia" style="border-left: 4px solid var(--orange); display: none;">
           <div class="panel-header">
-            <div class="panel-title"><i class="fas fa-terminal"></i> Novo Commit de Engenharia</div>
+            <div class="panel-title"><i class="fas fa-terminal"></i> Novo Commit de Desenvolvimento</div>
             <button type="button" class="theme-btn" id="btnCloseEngForm"><i class="fas fa-times"></i></button>
           </div>
           <div class="grid-2">
             <div class="fg">
-              <label>Sub-Sistema (Módulo) <span style="color:var(--orange)">*</span></label>
+              <label>Subsistema <span style="color:var(--orange)">*</span></label>
               <select id="engSys">
-                <option value="MEC_INT">MEC_INT - Intake/Garra</option>
+                <option value="MEC_INT">MEC_INT - Garra/Intake</option>
                 <option value="MEC_ELE">MEC_ELE - Elevador/Braço</option>
-                <option value="DRV">DRV - Chassi/Drivetrain</option>
-                <option value="SEN">SEN - Sensores/Visão</option>
+                <option value="DRV">DRV - Chassi/Tração</option>
+                <option value="SEN">SEN - Sensores/Vião</option>
                 <option value="SW">SW - Software/Código</option>
                 <option value="STR">STR - Estratégia</option>
               </select>
@@ -231,7 +205,7 @@
               <input type="text" id="engVer" placeholder="Ex: v1.0">
             </div>
             <div class="fg col-span-2">
-              <label>Título do Ticket / Modificação <span style="color:var(--orange)">*</span></label>
+              <label>Título do Commit / Modificação <span style="color:var(--orange)">*</span></label>
               <input type="text" id="engTitulo" placeholder="Ex: Substituição das rodas mecanum por omni">
             </div>
             <div class="fg col-span-2" style="margin-top: 16px;">
@@ -304,13 +278,13 @@
       <section id="sec-robot" class="section">
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title"><i class="fas fa-cubes"></i> Bill of Materials & Configuração</div>
+            <div class="panel-title"><i class="fas fa-cubes"></i> Projeto & BOM</div>
           </div>
 
           <div class="grid-2" style="max-width: 500px; margin: 0 auto 30px auto;">
             <div class="fg">
               <label style="text-align: center; justify-content: center;">Nome do Robô</label>
-              <input type="text" id="robotName" placeholder="Ex: METALINA" value="METALINA" readonly style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--border-light); background: var(--bg-input); cursor: not-allowed; color: var(--text-muted);" title="Nome bloqueado pelo sistema global">
+              <input type="text" id="robotName" placeholder="Ex: OBR-1" value="OBR-1" readonly style="text-align: center; font-size: 18px; font-weight: 700; border-color: var(--border-light); background: var(--bg-input); cursor: not-allowed; color: var(--text-muted);" title="Nome bloqueado pelo sistema global">
             </div>
             <div class="fg">
               <label style="text-align: center; justify-content: center;">Versão a ser criada</label>
@@ -358,7 +332,7 @@
 
             <div class="fg" style="gap: 40px;">
               <div class="blueprint-card">
-                <div class="blueprint-header">MEC - Intake/Garra</div>
+                <div class="blueprint-header">MEC - Garra/Intake</div>
                 <div class="blueprint-body bp-input-group">
                   <select id="bp-mec1" class="blueprint-input bp-ver" style="appearance: auto; padding-right: 25px;"><option value="">Automático</option></select>
                   <input type="number" id="bp-mec1-cost" class="blueprint-input bp-cost bp-cost-input" placeholder="$">
@@ -391,17 +365,17 @@
           <div class="panel-header"><span class="panel-title"><i class="fas fa-not-equal"></i> Análise Comparativa de Versões</span></div>
           <div class="grid-2">
               <div class="fg">
-                <label>Robô / Blueprint A</label>
-                <select id="compA"><option value="">Selecione um Blueprint...</option></select>
+                <label>Robô / Projeto A</label>
+                <select id="compA"><option value="">Selecione uma versão...</option></select>
               </div>
               <div class="fg">
-                <label>Robô / Blueprint B</label>
-                <select id="compB"><option value="">Selecione um Blueprint...</option></select>
+                <label>Robô / Projeto B</label>
+                <select id="compB"><option value="">Selecione uma versão...</option></select>
               </div>
           </div>
           
           <div id="compareResults" style="margin-top: 30px; overflow-x: auto;">
-             <p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar a evolução mecânica e de desempenho.</p>
+             <p style="text-align:center; color:var(--text-muted); font-size: 14px; padding: 40px 0;">Selecione duas versões acima para comparar evolução mecânica e desempenho.</p>
           </div>
         </div>
       </section>
@@ -444,7 +418,7 @@
           </div>
           
           <div class="chart-card">
-            <h3>📊 Média Auto vs Tele-op</h3>
+            <h3>📊 Média Auto vs Teleop</h3>
             <div class="chart-wrapper">
               <canvas id="avgDistributionChart"></canvas>
             </div>
@@ -467,7 +441,7 @@
 
           <div class="chart-card">
             <h3>🕸️ Qualidade por Subsistema (QA)</h3>
-            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Com base nos Drills de Teste</p>
+            <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 10px;">Com base nos Testes de Mesa</p>
             <div class="chart-wrapper" aria-label="Gráfico de Radar mostrando a eficiência de qualidade por subsistema">
               <canvas id="robotProfileRadarChart"></canvas>
             </div>
@@ -510,7 +484,7 @@
                   <th>Auto</th>
                   <th>Tele</th>
                   <th>Total</th>
-                  <th>Fouls</th>
+                  <th>Penalidades</th>
                   <th>Efic.</th>
                   <th>Problemas</th>
                   <th style="width:40px;"></th>
@@ -519,7 +493,7 @@
               <tbody id="matchesTableBody">
                 <tr><td colspan="9" style="text-align:center; padding: 30px;">A carregar partidas...</td></tr>
               </tbody>
-            </table>
+             </table>
           </div>
         </div>
       </section>
@@ -527,13 +501,13 @@
       <section id="sec-help" class="section">
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title"><i class="fas fa-book"></i> Manual de Operações (Mission Control)</span>
+            <span class="panel-title"><i class="fas fa-book"></i> Manual de Operações (Mission Control OBR)</span>
           </div>
 
           <div style="text-align: center; margin-bottom: 40px; padding: 20px; background: var(--bg-input); border-radius: var(--radius-md); border: 1px solid var(--border-light);">
             <h3 style="font-size: 20px; color: var(--orange); margin-bottom: 12px;"><i class="fas fa-sitemap"></i> Arquitetura Baseada em Versões</h3>
             <p style="color: var(--text-muted); max-width: 800px; margin: 0 auto; font-size: 14px; line-height: 1.6;">
-              O MetalLab funciona com um sistema de <strong>Entidades Hierárquicas</strong>. Isso significa que todas as partidas, falhas e testes de QA estão "amarrados" à versão específica do robô selecionada no menu superior. <strong>A regra de ouro é:</strong> confirme sempre a versão ativa antes de registrar um dado!
+              O Sistema OBR funciona com um sistema de <strong>Entidades Hierárquicas</strong>. Todas as partidas, falhas e testes de QA ficam vinculados à versão específica do robô selecionada no menu superior. <strong>Regra de ouro:</strong> confirme sempre a versão ativa antes de registrar um dado!
             </p>
           </div>
 
@@ -543,27 +517,27 @@
             
             <div class="help-card">
               <div class="help-icon" style="color: #3b82f6;"><i class="fas fa-cubes"></i></div>
-              <h3>1. Blueprint & Bom</h3>
+              <h3>1. Projeto & BOM</h3>
               <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Onde a engenharia começa.</p>
               <ul style="font-size: 13px; padding-left: 20px; color: var(--text-muted);">
-                <li>Crie novas versões (Ex: v1.0, v1.1) para travar um "snapshot" mecânico do robô.</li>
-                <li>Atualize os custos para gerenciar o <strong>BOM (Bill of Materials)</strong> e o Sizing (18x18).</li>
+                <li>Crie novas versões (Ex: v1.0, v1.1) para guardar um "snapshot" mecânico do robô.</li>
+                <li>Atualize custos para gerenciar o <strong>BOM (Lista de Materiais)</strong> e o Sizing (18x18).</li>
               </ul>
             </div>
 
             <div class="help-card">
               <div class="help-icon" style="color: var(--orange);"><i class="fas fa-server"></i></div>
-              <h3>2. DevOps & QA</h3>
+              <h3>2. Engenharia & QA</h3>
               <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Rastreamento de melhorias.</p>
               <ul style="font-size: 13px; padding-left: 20px; color: var(--text-muted);">
                 <li><strong>Commit:</strong> Use para registrar trocas de peças, mudanças de código e resultados de Hipóteses.</li>
-                <li><strong>Drill (Teste):</strong> Use para executar protocolos padronizados de QA antes das partidas oficiais.</li>
+                <li><strong>Teste (Drill):</strong> Execute protocolos padronizados de QA antes das partidas oficiais.</li>
               </ul>
             </div>
 
             <div class="help-card">
               <div class="help-icon" style="color: #10b981;"><i class="fas fa-gamepad"></i></div>
-              <h3>3. Match Logging</h3>
+              <h3>3. Registro de Partidas</h3>
               <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Coleta de dados de arena.</p>
               <ul style="font-size: 13px; padding-left: 20px; color: var(--text-muted);">
                 <li>Marque os pontos reais feitos na partida.</li>
@@ -576,7 +550,7 @@
               <h3>4. Analytics & Compare</h3>
               <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Inteligência de dados.</p>
               <ul style="font-size: 13px; padding-left: 20px; color: var(--text-muted);">
-                <li><strong>Compare:</strong> Cruze duas versões para ver se a nova mecânica realmente trouxe mais pontos (ROI).</li>
+                <li><strong>Comparar:</strong> Cruze duas versões para ver se a nova mecânica realmente trouxe mais pontos (ROI).</li>
                 <li>Selecione versões diferentes no topo para viajar no tempo e rever gráficos antigos.</li>
               </ul>
             </div>
@@ -615,14 +589,14 @@
   <div class="custom-modal-overlay" id="welcomeModalOverlay">
     <div class="custom-modal" id="welcomeModal" style="max-width: 450px; text-align: left;">
       <div class="modal-title" style="color: var(--orange); text-align: center; font-size: 20px; margin-bottom: 16px;">
-        <i class="fas fa-rocket"></i> Bem-vindo ao MetalLab
+        <i class="fas fa-rocket"></i> Bem-vindo ao OBR Mission Control
       </div>
       <div class="modal-text" style="color: var(--text-main);">
-        <p style="margin-bottom: 12px; font-size: 15px;"><strong>Olá, Piloto/Engenheiro!</strong> Detectamos que é a sua primeira vez no Mission Control.</p>
+        <p style="margin-bottom: 12px; font-size: 15px;"><strong>Olá, Piloto/Engenheiro!</strong> Detectamos que é a sua primeira vez no sistema.</p>
         <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">Para manter nossos dados precisos, lembre-se destas 3 regras de ouro:</p>
         <ul style="padding-left: 20px; margin-bottom: 20px; color: var(--text-muted); font-size: 13px; line-height: 1.6;">
           <li><strong>Versões:</strong> Tudo o que você regista (partidas, commits) fica salvo na <em>Versão Ativa</em> escolhida no menu superior.</li>
-          <li><strong>DevOps:</strong> Trocou uma peça? Fez código novo? Registre um "Commit" na aba DevOps.</li>
+          <li><strong>Engenharia:</strong> Trocou uma peça? Fez código novo? Registre um "Commit" na aba Engenharia.</li>
           <li><strong>Ajuda:</strong> Leia a aba <i class="fas fa-book"></i> Ajuda para entender os Gráficos e KPIs (Fiabilidade, ROI, etc).</li>
         </ul>
       </div>

@@ -1,140 +1,226 @@
-// js/match.js
+// js/match.js – Versão OBR 2026 Robótica de Resgate
+// Multiplicadores corrigidos conforme manual: 4x (3 vítimas), 3x (2 vítimas), 2x (1 vítima), 1x (nenhuma)
 import { appState, parseNumber } from './store.js';
 import { db, ROBO_ATIVO, collection, addDoc, updateDoc, doc } from './firebase.js';
 import { showToast } from './ui.js';
 
+// Estado interno do módulo
+let currentAttempt = 1;          // 1,2,3,4+
+let totalTrajectoryPoints = 0;
+let arrivalPoints = 0;
+let rescueMultiplier = 1;
+let surpriseMultiplier = 1;
+
+// Elementos do DOM
+let trajectoryPointsSpan, arrivalPointsSpan, totalBeforeMultiplierSpan;
+let rescueMultSpan, surpriseMultSpan, finalScoreSpan;
+
 export function initMatchLogic() {
-  document.getElementById('pontEsperada').addEventListener('input', calcMatchScore);
-  
-  document.querySelectorAll('.counter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-target'); 
-      const delta = Math.round(parseNumber(btn.getAttribute('data-delta')));
-      const input = document.getElementById(targetId); 
-      const display = document.getElementById('val-' + targetId);
-      let val = Math.round(parseNumber(input.value)) || 0; 
-      val += delta; if(val < 0) val = 0; 
-      input.value = val; display.innerText = val; 
-      calcMatchScore();
-    });
-  });
+  // Captura elementos
+  trajectoryPointsSpan = document.getElementById('trajectoryPoints');
+  arrivalPointsSpan = document.getElementById('arrivalPoints');
+  totalBeforeMultiplierSpan = document.getElementById('totalBeforeMultiplier');
+  rescueMultSpan = document.getElementById('rescueMultiplier');
+  surpriseMultSpan = document.getElementById('surpriseMultiplier');
+  finalScoreSpan = document.getElementById('finalScore');
 
-  document.querySelectorAll('.seg-option').forEach(btn => {
+  // Botões de perigos
+  document.querySelectorAll('.danger-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const group = btn.parentElement; 
-      const targetId = btn.getAttribute('data-target'); 
-      const val = btn.getAttribute('data-val'); 
-      const isOrange = btn.getAttribute('data-orange') === 'true';
-      document.getElementById(targetId).value = val; 
-      group.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active', 'active-orange')); 
-      if (isOrange && val > 0) btn.classList.add('active-orange'); else btn.classList.add('active'); 
-      calcMatchScore();
+      const type = btn.dataset.type;
+      const value = parseInt(btn.dataset.value, 10);
+      addHazardPoints(type, value);
     });
   });
 
-  document.querySelectorAll('.tag-problem').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const container = btn.parentElement; 
-      const isExclusive = btn.getAttribute('data-exclusive') === 'true';
-      if(isExclusive) { 
-        container.querySelectorAll('.tag').forEach(b => b.classList.remove('active', 'active-orange')); 
-        btn.classList.add('active-orange'); 
-        appState.tagsProblemas = [btn.innerText]; 
-        return; 
-      }
-      const btnLimpa = container.querySelector('.active-orange'); 
-      if(btnLimpa) { btnLimpa.classList.remove('active-orange'); appState.tagsProblemas = []; }
-      btn.classList.toggle('active'); 
-      const val = btn.innerText;
-      if(btn.classList.contains('active')) { 
-        appState.tagsProblemas.push(val); 
-      } else { 
-        const idx = appState.tagsProblemas.indexOf(val); 
-        if(idx > -1) appState.tagsProblemas.splice(idx, 1); 
-      }
-    });
-  });
+  // Botão de checkpoint (avançar)
+  const btnCheckpoint = document.getElementById('btnCheckpoint');
+  if (btnCheckpoint) btnCheckpoint.addEventListener('click', () => advanceCheckpoint());
 
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.delete-match-btn');
-    if(btn) {
-      const docId = btn.getAttribute('data-id');
-      if(!confirm("Mover partida para a lixeira?")) return;
-      try {
-        await updateDoc(doc(db, "robos", ROBO_ATIVO, "versoes", appState.versaoAtiva, "partidas", docId), { apagado: true }); 
-        showToast('Partida movida para lixeira.', 'success');
-      } catch(err) { console.error(err); showToast('Erro ao excluir.', 'error'); }
+  // Botão de registrar resgate
+  const btnRescue = document.getElementById('btnRecordRescue');
+  if (btnRescue) btnRescue.addEventListener('click', () => recordRescue());
+
+  // Botão de chegada
+  const btnArrival = document.getElementById('btnArrival');
+  if (btnArrival) btnArrival.addEventListener('click', () => {
+    if (arrivalPoints === 0) {
+      setArrivalPoints();
+      showToast(`Ladrilho de chegada! +${arrivalPoints} pontos`, 'success');
+    } else {
+      showToast('Chegada já registrada.', 'warning');
     }
   });
 
-  document.getElementById('btnSaveMatch').addEventListener('click', saveMatch);
-  calcMatchScore();
+  // Checkbox de desafio surpresa
+  const chkSurprise = document.getElementById('surpriseCompleted');
+  if (chkSurprise) chkSurprise.addEventListener('change', (e) => {
+    surpriseMultiplier = e.target.checked ? 1.5 : 1;
+    surpriseMultSpan.innerText = surpriseMultiplier.toFixed(1);
+    updateFinalScore();
+  });
+
+  // Botão de reset da rodada (nova tentativa)
+  const btnResetRound = document.getElementById('btnResetRound');
+  if (btnResetRound) btnResetRound.addEventListener('click', () => resetRound());
+
+  // Gravar partida
+  const btnSave = document.getElementById('btnSaveMatch');
+  if (btnSave) btnSave.addEventListener('click', saveMatch);
+
+  // Inicializar visor
+  resetRound();
 }
 
-export const calcMatchScore = () => {
-  const getM = id => Math.round(parseNumber(document.getElementById(id).value)) || 0;
-  const auto = getM('autoLeave') + (getM('autoClass') * 3) + (getM('autoOver') * 1) + (getM('autoPat') * 2);
-  const tele = (getM('teleClass') * 3) + (getM('teleOver') * 1) + (getM('teleDepot') * 1) + (getM('telePat') * 2) + getM('teleBase') + getM('teleDouble');
-  const fouls = (getM('foulMinor') * 10) + (getM('foulMajor') * 30);
-  const total = auto + tele;
+function addHazardPoints(type, points) {
+  if (arrivalPoints > 0) {
+    showToast('Rodada já terminou no ladrilho de chegada!', 'warning');
+    return;
+  }
+  totalTrajectoryPoints += points;
+  updateUI();
+  showToast(`${type} superado! +${points} pts`, 'success');
+}
 
-  document.getElementById('hudTotal').innerText = total; document.getElementById('hudAuto').innerText = auto;
-  document.getElementById('hudTele').innerText = tele; document.getElementById('hudFouls').innerText = "-" + fouls;
+function advanceCheckpoint() {
+  if (arrivalPoints > 0) return;
   
-  const max = parseNumber(document.getElementById('pontEsperada').value) || 100;
-  const efic = max > 0 ? Math.round((total/max)*100) : 0;
-  const elEfic = document.getElementById('hudEfic'); elEfic.innerText = efic + '%';
-  if(efic >= 100) elEfic.style.color = 'var(--orange)'; else if(efic >= 50) elEfic.style.color = 'var(--text-main)'; else elEfic.style.color = 'var(--text-muted)';
-};
+  // Pontuação conforme a tentativa (1ª = 5, 2ª = 3, 3ª = 1, 4ª+ = 0)
+  const pointsMap = {1:5, 2:3, 3:1};
+  const checkpointPoints = pointsMap[currentAttempt] || 0;
+  totalTrajectoryPoints += checkpointPoints;
+  
+  // Incrementa tentativa para o próximo checkpoint (máximo 4)
+  if (currentAttempt < 4) currentAttempt++;
+  
+  updateUI();
+  if (checkpointPoints > 0) {
+    showToast(`Checkpoint atingido! +${checkpointPoints} pts (${currentAttempt-1}ª tentativa)`, 'info');
+  } else {
+    showToast(`Checkpoint atingido (sem pontos - 4ª+ tentativa)`, 'info');
+  }
+}
+
+function recordRescue() {
+  const liveCorrect = parseInt(document.getElementById('liveCorrect').value, 10) || 0;
+  const deadCorrect = parseInt(document.getElementById('deadCorrect').value, 10) || 0;
+  const totalVictims = liveCorrect + deadCorrect;
+  
+  // Multiplicador conforme manual OBR 2026 (pág. 43)
+  // 4x: todas as 3 vítimas (2 vivas + 1 morta)
+  // 3x: 2 vítimas (qualquer combinação)
+  // 2x: 1 vítima (viva ou morta)
+  // 1x: nenhuma
+  let mult = 1;
+  if (totalVictims === 3 && liveCorrect === 2 && deadCorrect === 1) {
+    mult = 4.0;
+  } else if (totalVictims === 2) {
+    mult = 3.0;
+  } else if (totalVictims === 1) {
+    mult = 2.0;
+  } else {
+    mult = 1.0;
+  }
+  
+  rescueMultiplier = mult;
+  rescueMultSpan.innerText = rescueMultiplier.toFixed(1);
+  updateFinalScore();
+  showToast(`Resgate registado! Multiplicador = ${rescueMultiplier}x`, 'success');
+}
+
+function setArrivalPoints() {
+  let attemptsUsed = Math.min(currentAttempt - 1, 3); // 0,1,2,3
+  arrivalPoints = Math.max(0, 60 - 5 * attemptsUsed);
+  arrivalPointsSpan.innerText = arrivalPoints;
+  updateFinalScore();
+}
+
+function updateUI() {
+  trajectoryPointsSpan.innerText = totalTrajectoryPoints;
+  arrivalPointsSpan.innerText = arrivalPoints;
+  const subtotal = totalTrajectoryPoints + arrivalPoints;
+  totalBeforeMultiplierSpan.innerText = subtotal;
+  updateFinalScore();
+}
+
+function updateFinalScore() {
+  const subtotal = totalTrajectoryPoints + arrivalPoints;
+  const final = Math.ceil(subtotal * rescueMultiplier * surpriseMultiplier);
+  finalScoreSpan.innerText = final;
+}
+
+function resetRound() {
+  currentAttempt = 1;
+  totalTrajectoryPoints = 0;
+  arrivalPoints = 0;
+  rescueMultiplier = 1;
+  surpriseMultiplier = document.getElementById('surpriseCompleted')?.checked ? 1.5 : 1;
+  
+  // Resetar UI
+  if (document.getElementById('liveCorrect')) {
+    document.getElementById('liveCorrect').value = 0;
+    document.getElementById('deadCorrect').value = 0;
+  }
+  if (document.getElementById('surpriseCompleted')) {
+    document.getElementById('surpriseCompleted').checked = (surpriseMultiplier === 1.5);
+  }
+  
+  rescueMultSpan.innerText = rescueMultiplier.toFixed(1);
+  surpriseMultSpan.innerText = surpriseMultiplier.toFixed(1);
+  arrivalPointsSpan.innerText = '0';
+  trajectoryPointsSpan.innerText = '0';
+  totalBeforeMultiplierSpan.innerText = '0';
+  finalScoreSpan.innerText = '0';
+  showToast('Rodada reiniciada. Nova tentativa.', 'info');
+}
 
 async function saveMatch(e) {
   const btn = e.currentTarget;
-  if (btn.disabled) return; 
-  if(!appState.versaoAtiva) { showToast('Sem versão ativa configurada!', 'error'); return; }
-
-  btn.disabled = true; 
-  const originalHTML = btn.innerHTML; 
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gravando...'; 
-  btn.classList.add('loading');
-
-  const getM = id => Math.round(parseNumber(document.getElementById(id).value)) || 0;
-
+  if (btn.disabled) return;
+  if (!appState.versaoAtiva) {
+    showToast('Sem versão ativa configurada!', 'error');
+    return;
+  }
+  
+  const subtotal = totalTrajectoryPoints + arrivalPoints;
+  const final = parseInt(finalScoreSpan.innerText, 10);
+  
   const matchData = {
-    pilotos: document.getElementById('pilotos').value, 
-    target: parseNumber(document.getElementById('pontEsperada').value),
-    auto: Math.round(parseNumber(document.getElementById('hudAuto').innerText)), 
-    tele: Math.round(parseNumber(document.getElementById('hudTele').innerText)), 
-    total: Math.round(parseNumber(document.getElementById('hudTotal').innerText)), 
-    fouls: (getM('foulMinor') * 10) + (getM('foulMajor') * 30),
-    eficiencia: document.getElementById('hudEfic').innerText, 
-    problemas: appState.tagsProblemas.length > 0 ? appState.tagsProblemas.join(', ') : 'Limpa', 
-    timestamp: new Date(), 
+    pilotos: document.getElementById('pilotos').value.trim() || 'Equipe OBR',
+    timestamp: new Date(),
+    trajetoriaPontos: totalTrajectoryPoints,
+    chegadaPontos: arrivalPoints,
+    subtotal: subtotal,
+    multiplicadorResgate: rescueMultiplier,
+    multiplicadorSurpresa: surpriseMultiplier,
+    pontuacaoFinal: final,
+    vidasVivasSalvas: parseInt(document.getElementById('liveCorrect')?.value || 0, 10),
+    vidasMortasSalvas: parseInt(document.getElementById('deadCorrect')?.value || 0, 10),
+    tentativasCheckpoint: currentAttempt - 1,
     apagado: false
   };
-
+  
+  btn.disabled = true;
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gravando...';
+  
   try {
     await addDoc(collection(db, "robos", ROBO_ATIVO, "versoes", appState.versaoAtiva, "partidas"), matchData);
-    btn.innerHTML = '<i class="fas fa-check"></i> Gravado!'; 
-    btn.classList.remove('loading'); btn.classList.add('success');
-    showToast('Partida gravada na ' + appState.versaoAtiva, 'success');
-    
+    showToast(`Partida OBR registada! Pontuação final: ${final}`, 'success');
+    btn.innerHTML = '<i class="fas fa-check"></i> Gravado!';
     setTimeout(() => {
-      btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Sincronizar Partida'; 
-      btn.classList.remove('success');
-      ['autoClass','autoOver','autoPat','teleClass','teleOver','teleDepot','telePat','foulMinor','foulMajor'].forEach(id => { document.getElementById(id).value = '0'; document.getElementById('val-'+id).innerText = '0'; });
-      ['autoLeave','teleBase','teleDouble'].forEach(id => { const p = document.getElementById('sg-'+id); p.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active', 'active-orange')); p.querySelector('.seg-btn').classList.add('active'); document.getElementById(id).value = '0'; });
-      appState.tagsProblemas = ['Partida Limpa']; document.querySelectorAll('#grp-problemas .tag').forEach(b => b.classList.remove('active', 'active-orange')); document.querySelector('#grp-problemas .tag[data-exclusive="true"]').classList.add('active-orange');
-      calcMatchScore(); window.scrollTo(0,0); 
+      btn.innerHTML = originalHTML;
+      btn.disabled = false;
+      resetRound();
     }, 1500);
-
-  } catch (err) { 
-    console.error(err); showToast('Erro ao gravar.', 'error'); 
-    btn.innerHTML = '<i class="fas fa-times"></i> Erro'; 
-    btn.classList.remove('loading'); 
-    setTimeout(() => { btn.innerHTML = originalHTML; }, 2000); 
-  } finally {
-    // Segurança Absoluta (Passo 2)
-    btn.disabled = false; 
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao gravar partida.', 'error');
+    btn.innerHTML = '<i class="fas fa-times"></i> Erro';
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.disabled = false;
+    }, 2000);
   }
 }
 
@@ -142,21 +228,22 @@ export function renderMatchesTable() {
   const tbody = document.getElementById('matchesTableBody');
   if (!tbody) return;
   if (appState.matchesData.length === 0) { 
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px;">Nenhuma partida registada para <strong>${appState.versaoAtiva}</strong>.</td></tr>`; 
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px;">Nenhuma partida registada para <strong>${appState.versaoAtiva}</strong>.</td></tr>`; 
     return; 
   }
   
   let html = '';
   appState.matchesData.forEach(m => {
     const dataStr = m.timestamp ? new Date(m.timestamp.seconds * 1000).toLocaleDateString('pt-BR') : '-';
-    html += `<tr><td>${dataStr}</td><td>${m.pilotos || '-'}</td><td>${m.auto || 0}</td><td>${m.tele || 0}</td>
-      <td><strong>${m.total || 0}</strong></td><td style="color:var(--brand-red);">${m.fouls || 0}</td>
-      <td>${m.eficiencia || '-'}</td><td>${m.problemas || 'Limpa'}</td>
-      <td><button type="button" class="delete-match-btn" data-id="${m.docId}" title="Lixeira"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+    html += `<tr>
+      <td>${dataStr}</td>
+      <td>${m.pilotos || '-'}</td>
+      <td>${m.trajetoriaPontos || 0}</td>
+      <td>${m.chegadaPontos || 0}</td>
+      <td><strong>${m.pontuacaoFinal || 0}</strong></td>
+      <td>${m.multiplicadorResgate || 1}x / ${m.multiplicadorSurpresa || 1}x</td>
+      <td><button type="button" class="delete-match-btn" data-id="${m.docId}" title="Lixeira"><i class="fas fa-trash-alt"></i></button></td>
+    </tr>`;
   });
-  
-  if(appState.matchesData.length >= 100) {
-      html += `<tr><td colspan="9" style="text-align:center; color: var(--text-muted); font-size: 11px; padding: 10px;">Mostrando as últimas 100 partidas.</td></tr>`;
-  }
   tbody.innerHTML = html;
 }

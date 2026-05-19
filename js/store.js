@@ -10,7 +10,15 @@ export const appState = {
   tagsProblemas: ['Partida Limpa'],
   robotVersionsArray: [],
   isViewingGlobalHistory: false,
-  dbInitialized: false 
+  dbInitialized: false,
+  // Cache para dados da partida OBR (opcional, apenas para consistência)
+  obrMatchCache: {
+    totalTrajectory: 0,
+    arrivalPoints: 0,
+    rescueMult: 1,
+    surpriseMult: 1,
+    finalScore: 0
+  }
 };
 
 // 2. Constantes Globais

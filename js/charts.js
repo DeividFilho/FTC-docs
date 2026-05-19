@@ -22,7 +22,7 @@ export const refreshCharts = () => {
   appState.engLogsData.forEach(log => { let s = log.ticket ? log.ticket.split('-')[0] : log.sys; if (s === 'MEC') s = 'MEC_INT'; if(sysCounts[s] !== undefined && log.tipo !== 'QA_DRILL') sysCounts[s]++; });
 
   updateOrCreateChart('polar', 'devOpsEffortChart', 'polarArea', 
-    { labels: ['Intake', 'Elevador', 'Chassi', 'Sensores', 'Código', 'Estratégia'], datasets: [{ data: [sysCounts.MEC_INT, sysCounts.MEC_ELE, sysCounts.DRV, sysCounts.SEN, sysCounts.SW, sysCounts.STR], backgroundColor: [ orange, '#f59e0b', blue, '#8b5cf6', green, '#ef4444' ], borderWidth: 1, borderColor: isDark ? '#121212' : '#fff' }] },
+    { labels: ['Garra/Resgate', 'Guincho/Elevador', 'Chassi', 'Sensores', 'Código', 'Estratégia'], datasets: [{ data: [sysCounts.MEC_INT, sysCounts.MEC_ELE, sysCounts.DRV, sysCounts.SEN, sysCounts.SW, sysCounts.STR], backgroundColor: [ orange, '#f59e0b', blue, '#8b5cf6', green, '#ef4444' ], borderWidth: 1, borderColor: isDark ? '#121212' : '#fff' }] },
     { maintainAspectRatio: false, scales: { r: { grid: { color: gridColor }, ticks: { display: false } } }, plugins: { legend: { display: true, position: 'right', labels: { color: textColor } } } }
   );
 
@@ -45,10 +45,9 @@ export const refreshCharts = () => {
     qaCount['STR'] > 0 ? Math.round(qaTotal['STR'] / qaCount['STR']) : 0
   ];
 
-  // Passo 5: Tooltips no Gráfico de Radar
   updateOrCreateChart('radar', 'robotProfileRadarChart', 'radar', 
     { 
-      labels: ['Chassi (DRV)', 'Sensores (SEN)', 'Intake (MEC)', 'Elevador (MEC)', 'Software (SW)', 'Estratégia (STR)'], 
+      labels: ['Chassi (DRV)', 'Sensores (SEN)', 'Mecanismos (MEC)', 'Guincho (MEC2)', 'Software (SW)', 'Estratégia (STR)'], 
       datasets: [{ label: 'Eficiência nos Testes (%)', data: radarDataQA, backgroundColor: bgOrange, borderColor: orange, pointBackgroundColor: orange }] 
     },
     { 
@@ -65,8 +64,8 @@ export const refreshCharts = () => {
                 },
                 afterBody: function(tooltipItems) {
                     const item = tooltipItems[0].label;
-                    if(item === 'Consistência' || item === 'Estratégia (STR)') return '\n(Mede a estabilidade e eficiência estratégica)';
-                    if(item === 'Fiabilidade' || item === 'Sensores (SEN)') return '\n(Taxa de sucesso sem falhas mecânicas/leitura)';
+                    if(item === 'Consistência' || item === 'Estratégia (STR)') return '\n(Mede a estabilidade na arena e sala de resgate)';
+                    if(item === 'Fiabilidade' || item === 'Sensores (SEN)') return '\n(Taxa de sucesso sem perder a linha)';
                     return '';
                 }
             }
@@ -89,7 +88,7 @@ export const refreshCharts = () => {
   }
 
   let labels = []; let totals = []; let autos = []; let teles = []; let efficiencySum = 0; let cleanMatches = 0; let count = 0; let foulsTotal = 0;
-  let problemasCount = {}; let sumDetails = { autoLeave: 0, autoClass: 0, autoOver: 0, autoPat: 0, teleClass: 0, teleOver: 0, teleDepot: 0, telePat: 0, teleBase: 0, teleDouble: 0 };
+  let problemasCount = {}; let sumDetails = { obstaculo: 0, interseccao: 0, gap: 0, redutor: 0, rampa: 0, gangorra: 0, vitViva: 0, vitMorta: 0, vitInvertida: 0 };
   const sortedMatches = [...appState.matchesData].reverse();
 
   sortedMatches.forEach((d, index) => {
@@ -118,7 +117,7 @@ export const refreshCharts = () => {
 
   const avgAuto = autos.reduce((a,b)=>a+b, 0)/count; const avgTele = teles.reduce((a,b)=>a+b, 0)/count;
   updateOrCreateChart('avg', 'avgDistributionChart', 'bar', 
-    { labels: ['Autônomo', 'Tele-Op'], datasets: [{ label: 'Pontuação Média', data: [avgAuto, avgTele], backgroundColor: [blue, green], borderRadius: 6 }] },
+    { labels: ['Trajeto (Linha)', 'Bônus Resgate'], datasets: [{ label: 'Pontuação Média', data: [avgAuto, avgTele], backgroundColor: [blue, green], borderRadius: 6 }] },
     { maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } }, scales: { y: { grid: {color: gridColor}, ticks: { color: textColor } }, x: { grid: {display: false}, ticks: { color: textColor } } } }
   );
 
@@ -143,15 +142,17 @@ export const refreshCharts = () => {
   const scatterData = sortedMatches.map(m => ({ x: m.auto || 0, y: m.total || 0 }));
   updateOrCreateChart('scatter', 'scatterAutoTotalChart', 'scatter', 
     { datasets: [{ label: 'Partidas', data: scatterData, backgroundColor: orange, pointRadius: 6 }] },
-    { maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Pontos Autônomo', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } }, y: { title: { display: true, text: 'Pontos Totais', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } } }, plugins: { legend: { labels: { color: textColor } } } }
+    { maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Pontos de Trajeto', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } }, y: { title: { display: true, text: 'Pontos Totais', color: textColor }, grid: { color: gridColor }, ticks: { color: textColor } } }, plugins: { legend: { labels: { color: textColor } } } }
   );
 
-  const contribLabels = ['Leave Auto', 'Classified Auto', 'Overflow Auto', 'Pattern Auto', 'Classified Tele', 'Overflow Tele', 'Depot Tele', 'Pattern Tele', 'Base', 'Double Base'];
-  const contribData = [ sumDetails.autoLeave / count, sumDetails.autoClass / count, sumDetails.autoOver / count, sumDetails.autoPat / count, sumDetails.teleClass / count, sumDetails.teleOver / count, sumDetails.teleDepot / count, sumDetails.telePat / count, sumDetails.teleBase / count, sumDetails.teleDouble / count ];
+  const contribLabels = ['Obstáculos', 'Intersecções', 'Gaps', 'Redutores', 'Rampa', 'Gangorra', 'Resgates Feitos (Mult.)'];
+  const resgateCount = (sumDetails.vitViva + sumDetails.vitMorta + sumDetails.vitInvertida) / count;
+  const contribData = [ (sumDetails.obstaculo * 10) / count, (sumDetails.interseccao * 10) / count, (sumDetails.gap * 10) / count, (sumDetails.redutor * 5) / count, (sumDetails.rampa * 10) / count, (sumDetails.gangorra * 20) / count, resgateCount * 10 ];
+  
   const filteredLabels = contribLabels.filter((_, i) => contribData[i] > 0); const filteredData = contribData.filter(v => v > 0);
   
   updateOrCreateChart('contribution', 'contributionPieChart', 'pie', 
-    { labels: filteredLabels.length ? filteredLabels : ['Sem dados'], datasets: [{ data: filteredData.length ? filteredData : [1], backgroundColor: ['#FF5E00','#F59E0B','#3B82F6','#10B981','#8B5CF6','#EC4899','#14B8A6','#F97316','#6366F1','#A855F7'] }] },
+    { labels: filteredLabels.length ? filteredLabels : ['Sem dados'], datasets: [{ data: filteredData.length ? filteredData : [1], backgroundColor: ['#FF5E00','#F59E0B','#3B82F6','#10B981','#8B5CF6','#EC4899','#14B8A6'] }] },
     { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor } } } }
   );
 };

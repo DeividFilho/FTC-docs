@@ -114,7 +114,6 @@ async function saveBlueprint(e) {
     btn.innerHTML = '<i class="fas fa-times"></i> Erro'; 
     btn.classList.remove('loading');
   } finally {
-    // CORREÇÃO: Padrão consistente de limpeza de UI (sucesso ou falha)
     setTimeout(() => { 
       btn.innerHTML = originalText; 
       btn.classList.remove('success'); 
@@ -125,7 +124,6 @@ async function saveBlueprint(e) {
 
 async function loadBlueprintOptions() {
   try {
-    // CORREÇÃO: Limita a pesquisa às 5 versões mais recentes para evitar lentidão e excesso de leituras O(N)
     const recentVersions = appState.robotVersionsArray.slice(0, 5);
     
     const promises = recentVersions.map(v => getDocs(query(collection(db, "robos", ROBO_ATIVO, "versoes", v, "engenharia"), orderBy("timestamp", "desc"), limit(15))));
@@ -274,7 +272,7 @@ const renderCompare = async () => {
 
     res.innerHTML = `
       <div style="background: var(--bg-input); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 24px; text-align: center; box-shadow: var(--shadow-sm);">
-        <h4 style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px;"><i class="fas fa-brain"></i> Análise de Decisão do MetalLab</h4>
+        <h4 style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px;"><i class="fas fa-brain"></i> Análise de Decisão OBR</h4>
         ${vereditoHTML}
       </div>
 
@@ -304,7 +302,7 @@ const renderCompare = async () => {
           ${compareRow('Inconsistência de Partida (Menor é Melhor)', statsA.consistencia, statsB.consistencia, true, true, '%')}
           ${compareRow('Custo por Ponto Feito (ROI)', statsA.custoPonto, statsB.custoPonto, true, true, ' R$')}
           
-          <tr style="background: rgba(0,0,0,0.03);"><td colspan="3" style="text-align: left; font-size: 10px; color: var(--text-muted); font-weight: bold; letter-spacing: 1px; margin-top: 10px;">⚙️ HARDWARE E BLUEPRINT</td></tr>
+          <tr style="background: rgba(0,0,0,0.03);"><td colspan="3" style="text-align: left; font-size: 10px; color: var(--text-muted); font-weight: bold; letter-spacing: 1px; margin-top: 10px;">⚙️ HARDWARE E PROJETO</td></tr>
           ${compareRow('Chassi (DRV)', bpA.drv, bpB.drv)} 
           ${compareRow('Sensores (SEN)', bpA.sen, bpB.sen)}
           ${compareRow('Intake (MEC1)', bpA.mec1, bpB.mec1)} 
